@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import dynamic from 'next/dynamic';
+import { useRouter } from "next/navigation";
 import {
   SidebarProvider,
   Sidebar,
@@ -38,7 +39,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { ReportCard } from "./report-card";
 import { AiInsightsDialog } from "./ai-insights-dialog";
-import type { Report, ReportSeverity, ReportStatus, ReportType } from "@/lib/types";
+import type { Report, ReportStatus } from "@/lib/types";
 import { mockReports } from "@/lib/data";
 import { Download, Filter, LogOut, Settings, User as UserIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -61,6 +62,7 @@ function GovernmentDashboardContent() {
   
   const { toast } = useToast();
   const { user } = useUser();
+  const router = useRouter();
 
   const [mapCenter, setMapCenter] = React.useState({ lat: 19.043, lng: 72.859 });
   const [mapZoom, setMapZoom] = React.useState(12);
@@ -104,6 +106,11 @@ function GovernmentDashboardContent() {
         description: "Could not fetch location data. Please try again."
       });
     }
+  };
+
+  const handleLogout = () => {
+    // In a real app, this would also clear auth tokens/session
+    router.push('/login');
   };
   
   return (
@@ -207,7 +214,7 @@ function GovernmentDashboardContent() {
                   <DropdownMenuItem><UserIcon className="mr-2 h-4 w-4" /> Profile</DropdownMenuItem>
                   <DropdownMenuItem><Settings className="mr-2 h-4 w-4" /> Settings</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem><LogOut className="mr-2 h-4 w-4" /> Log out</DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}><LogOut className="mr-2 h-4 w-4" /> Log out</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

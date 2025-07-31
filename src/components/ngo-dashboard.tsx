@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 import {
   SidebarProvider,
   Sidebar,
@@ -63,6 +64,7 @@ function NgoDashboardContent() {
   const [newReportLocation, setNewReportLocation] = React.useState<{ lat: number; lng: number } | null>(null);
   const { toast } = useToast();
   const { user } = useUser();
+  const router = useRouter();
 
   const [mapCenter, setMapCenter] = React.useState({ lat: 19.043, lng: 72.859 });
   const [mapZoom, setMapZoom] = React.useState(14);
@@ -87,10 +89,14 @@ function NgoDashboardContent() {
     setMapCenter(report.location);
     setMapZoom(16);
   };
-  
-  const handleMapClick = (lat: number, lng: number) => {
-      setNewReportLocation({ lat, lng });
-      setReportDialogOpen(true);
+
+  const handleDoubleRightClick = (lat: number, lng: number) => {
+    setNewReportLocation({ lat, lng });
+    setReportDialogOpen(true);
+    toast({
+        title: "Location Pinned",
+        description: "A new report has been started at the selected location.",
+    });
   };
   
   const handleNewReportClick = () => {
@@ -99,7 +105,7 @@ function NgoDashboardContent() {
     setReportDialogOpen(true);
     toast({
         title: "Click on the Map",
-        description: "Click anywhere on the map to set a location for your new report.",
+        description: "Double-right-click anywhere on the map to set a location for your new report.",
     });
   };
 
@@ -127,6 +133,11 @@ function NgoDashboardContent() {
         description: "Could not fetch location data. Please try again."
       });
     }
+  };
+
+  const handleLogout = () => {
+    // In a real app, this would also clear auth tokens/session
+    router.push('/login');
   };
   
   return (
@@ -242,7 +253,7 @@ function NgoDashboardContent() {
                   <DropdownMenuItem><UserIcon className="mr-2 h-4 w-4" /> Profile</DropdownMenuItem>
                   <DropdownMenuItem><Settings className="mr-2 h-4 w-4" /> Settings</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem><LogOut className="mr-2 h-4 w-4" /> Log out</DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}><LogOut className="mr-2 h-4 w-4" /> Log out</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -253,7 +264,7 @@ function NgoDashboardContent() {
               reports={filteredReports} 
               selectedReport={selectedReport} 
               onMarkerClick={handleCardClick}
-              onMapClick={handleMapClick}
+              onMapClick={handleDoubleRightClick}
               newReportLocation={newReportLocation}
               center={mapCenter}
               zoom={mapZoom}
