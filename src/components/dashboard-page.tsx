@@ -43,6 +43,7 @@ import type { Report, ReportSeverity, ReportStatus, ReportType } from "@/lib/typ
 import { mockReports } from "@/lib/data";
 import { Filter, LogOut, PlusCircle, Settings, User as UserIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { PlacesAutocomplete } from "./places-autocomplete";
 
 export function DashboardPage() {
   const [reports, setReports] = React.useState<Report[]>(mockReports);
@@ -52,6 +53,8 @@ export function DashboardPage() {
   const [newReportLocation, setNewReportLocation] = React.useState<{ lat: number; lng: number } | null>(null);
   const { toast } = useToast();
 
+  const [mapCenter, setMapCenter] = React.useState({ lat: 19.043, lng: 72.859 });
+  const [mapZoom, setMapZoom] = React.useState(14);
 
   const [typeFilter, setTypeFilter] = React.useState<ReportType | "all">("all");
   const [severityFilter, setSeverityFilter] = React.useState<ReportSeverity | "all">("all");
@@ -68,6 +71,8 @@ export function DashboardPage() {
   const handleCardClick = (report: Report) => {
     setSelectedReport(report);
     setNewReportLocation(null);
+    setMapCenter(report.location);
+    setMapZoom(16);
   };
 
   const handleMapClick = (e: google.maps.MapMouseEvent) => {
@@ -93,6 +98,15 @@ export function DashboardPage() {
       setNewReportLocation(null);
     }
   }
+
+  const handlePlaceSelect = (place: google.maps.places.PlaceResult) => {
+    if (place.geometry?.location) {
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+        setMapCenter({ lat, lng });
+        setMapZoom(16);
+    }
+  };
 
 
   return (
@@ -210,12 +224,17 @@ export function DashboardPage() {
         </header>
 
         <main className="flex-1 relative">
+          <PlacesAutocomplete onPlaceSelect={handlePlaceSelect} />
           <MapView 
             reports={filteredReports} 
             selectedReport={selectedReport} 
             onMarkerClick={handleCardClick}
             onMapClick={handleMapClick}
             newReportLocation={newReportLocation}
+            center={mapCenter}
+            zoom={mapZoom}
+            onCenterChanged={(center) => setMapCenter(center)}
+            onZoomChanged={(zoom) => setMapZoom(zoom)}
            />
         </main>
       </SidebarInset>

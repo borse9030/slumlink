@@ -9,7 +9,7 @@ import {
   Pin,
 } from "@vis.gl/react-google-maps";
 import type { Report } from "@/lib/types";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
 import { Badge } from "./ui/badge";
 import Image from "next/image";
@@ -90,20 +90,23 @@ type MapViewProps = {
   onMarkerClick: (report: Report) => void;
   onMapClick: (e: google.maps.MapMouseEvent) => void;
   newReportLocation: { lat: number; lng: number } | null;
+  center: { lat: number; lng: number };
+  zoom: number;
+  onCenterChanged: (center: { lat: number; lng: number }) => void;
+  onZoomChanged: (zoom: number) => void;
 };
 
-export function MapView({ reports, selectedReport, onMarkerClick, onMapClick, newReportLocation }: MapViewProps) {
-  const [center, setCenter] = useState({ lat: 19.043, lng: 72.859 });
-  const [zoom, setZoom] = useState(14);
-
-  useEffect(() => {
-    if (selectedReport) {
-      setCenter(selectedReport.location);
-      setZoom(16);
-    }
-  }, [selectedReport]);
-
-
+export function MapView({ 
+  reports, 
+  selectedReport, 
+  onMarkerClick, 
+  onMapClick, 
+  newReportLocation,
+  center,
+  zoom,
+  onCenterChanged,
+  onZoomChanged,
+}: MapViewProps) {
   if (!MAP_API_KEY) {
     return (
       <div className="flex items-center justify-center h-full bg-muted">
@@ -125,8 +128,8 @@ export function MapView({ reports, selectedReport, onMarkerClick, onMapClick, ne
         gestureHandling={'greedy'}
         disableDefaultUI={false}
         onClick={onMapClick}
-        onCenterChanged={(e) => setCenter(e.detail.center)}
-        onZoomChanged={(e) => setZoom(e.detail.zoom)}
+        onCenterChanged={(e) => onCenterChanged(e.detail.center)}
+        onZoomChanged={(e) => onZoomChanged(e.detail.zoom)}
       >
         {reports.map((report) => (
           <ReportMarker key={report.id} report={report} onClick={() => onMarkerClick(report)} />
