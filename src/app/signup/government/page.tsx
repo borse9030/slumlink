@@ -12,8 +12,20 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Landmark } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import React from "react"
 
 export default function GovernmentSignupPage() {
+  const { toast } = useToast()
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    toast({
+      title: "Request Submitted",
+      description: "Your account request has been sent for approval.",
+    });
+  }
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-muted/40">
       <Card className="mx-auto max-w-sm w-full">
@@ -27,7 +39,7 @@ export default function GovernmentSignupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
+          <form onSubmit={handleSubmit} className="grid gap-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="first-name">First name</Label>
@@ -58,7 +70,7 @@ export default function GovernmentSignupPage() {
             <Button type="submit" className="w-full">
               Submit Request
             </Button>
-          </div>
+          </form>
           <div className="mt-4 text-center text-sm">
             Already have an account?{" "}
             <Link href="/login/government" className="underline">
