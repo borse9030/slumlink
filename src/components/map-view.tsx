@@ -113,8 +113,8 @@ export function MapView({
     if (!map) return;
 
     // Prevent the default context menu from appearing on right-click
-    const contextMenuListener = map.addListener('contextmenu', (e: MouseEvent) => {
-        e.preventDefault();
+    const contextMenuListener = map.addListener('contextmenu', (e: google.maps.MapMouseEvent) => {
+        e.domEvent.preventDefault();
     });
 
     const rightClickListener = map.addListener('rightclick', (e: google.maps.MapMouseEvent) => {
