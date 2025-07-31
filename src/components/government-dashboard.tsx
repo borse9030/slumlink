@@ -55,6 +55,7 @@ const PlacesAutocomplete = dynamic(() => import('./places-autocomplete').then(mo
 
 const MapView = dynamic(() => import('./map-view').then(mod => mod.MapView), {
   ssr: false,
+  loading: () => <div className="h-full w-full bg-muted" />,
 });
 
 
@@ -124,7 +125,6 @@ function GovernmentDashboardContent() {
   };
 
   const handleLogout = () => {
-    // In a real app, this would also clear auth tokens/session
     router.push('/login');
   };
   
