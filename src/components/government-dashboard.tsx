@@ -50,6 +50,7 @@ import { Skeleton } from "./ui/skeleton";
 
 const PlacesAutocomplete = dynamic(() => import('./places-autocomplete').then(mod => mod.PlacesAutocomplete), {
   ssr: false,
+  loading: () => <Skeleton className="h-10 w-full" />,
 });
 
 const MapView = dynamic(() => import('./map-view').then(mod => mod.MapView), {

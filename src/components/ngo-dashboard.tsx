@@ -46,11 +46,12 @@ import { useToast } from "@/hooks/use-toast";
 import { APIProvider, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { getGeocode, getLatLng } from "use-places-autocomplete";
 import { useUser } from "@/hooks/useUser";
-import { getReports, addReport } from "@/lib/report-service";
+import { getReports } from "@/lib/report-service";
 import { Skeleton } from "./ui/skeleton";
 
 const PlacesAutocomplete = dynamic(() => import('./places-autocomplete').then(mod => mod.PlacesAutocomplete), {
   ssr: false,
+  loading: () => <Skeleton className="h-10 w-full" />,
 });
 
 const MapView = dynamic(() => import('./map-view').then(mod => mod.MapView), {
@@ -80,13 +81,17 @@ function NgoDashboardContent() {
   const fetchReports = React.useCallback(async () => {
     setIsLoadingReports(true);
     const reportsFromDb = await getReports();
-    setReports(reportsFromDb);
+    // Filter reports by current user for NGO dashboard
+    const userReports = reportsFromDb.filter(report => report.user.id === user?.id);
+    setReports(userReports);
     setIsLoadingReports(false);
-  }, []);
+  }, [user?.id]);
 
   React.useEffect(() => {
-    fetchReports();
-  }, [fetchReports]);
+    if (user) {
+      fetchReports();
+    }
+  }, [user, fetchReports]);
 
   const filteredReports = reports.filter(report => {
     return (
@@ -105,7 +110,7 @@ function NgoDashboardContent() {
     }
   };
 
-  const handleDoubleRightClick = (lat: number, lng: number) => {
+  const handleMapClick = (lat: number, lng: number) => {
     setNewReportLocation({ lat, lng });
     setReportDialogOpen(true);
     toast({
@@ -120,7 +125,7 @@ function NgoDashboardContent() {
     setReportDialogOpen(true);
     toast({
         title: "Click on the Map",
-        description: "Double-right-click anywhere on the map to set a location for your new report.",
+        description: "Click anywhere on the map to set a location for your new report.",
     });
   };
 
@@ -217,7 +222,7 @@ function NgoDashboardContent() {
             </SidebarGroup>
             <Separator />
             <SidebarGroup className="flex-1">
-              <SidebarGroupLabel>Reports ({filteredReports.length})</SidebarGroupLabel>
+              <SidebarGroupLabel>My Reports ({filteredReports.length})</SidebarGroupLabel>
               <ScrollArea className="h-[calc(100vh-350px)]">
                  {isLoadingReports ? (
                    <div className="space-y-2 p-2">
@@ -292,7 +297,7 @@ function NgoDashboardContent() {
               reports={filteredReports} 
               selectedReport={selectedReport} 
               onMarkerClick={handleCardClick}
-              onMapClick={handleDoubleRightClick}
+              onMapClick={handleMapClick}
               newReportLocation={newReportLocation}
               center={mapCenter}
               zoom={mapZoom}
