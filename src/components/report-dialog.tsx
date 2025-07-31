@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import React from "react";
+import React, { useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { MapPin } from "lucide-react";
 
@@ -34,6 +34,15 @@ type ReportDialogProps = {
 
 export function ReportDialog({ children, onOpenChange, open, location }: ReportDialogProps) {
   const { toast } = useToast();
+  const [lat, setLat] = React.useState('');
+  const [lng, setLng] = React.useState('');
+
+  useEffect(() => {
+    if (location) {
+      setLat(location.lat.toFixed(6));
+      setLng(location.lng.toFixed(6));
+    }
+  }, [location]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -61,7 +70,7 @@ export function ReportDialog({ children, onOpenChange, open, location }: ReportD
         <DialogHeader>
           <DialogTitle>Submit New Report</DialogTitle>
           <DialogDescription>
-            Help improve community infrastructure. Click on the map to set a location.
+            Help improve community infrastructure. Click on the map to pin a location or use the button and then click the map.
           </DialogDescription>
         </DialogHeader>
         {!location && open && (
@@ -136,7 +145,7 @@ export function ReportDialog({ children, onOpenChange, open, location }: ReportD
                 </Label>
                 <Input 
                   id="location" 
-                  value={location ? `${location.lat.toFixed(5)}, ${location.lng.toFixed(5)}` : "Select on map"} 
+                  value={location ? `${lat}, ${lng}` : "Select on map"} 
                   className="col-span-3" 
                   readOnly
                   required

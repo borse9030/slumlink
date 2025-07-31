@@ -51,9 +51,6 @@ const MapView = dynamic(() => import('./map-view').then(mod => mod.MapView), {
   ssr: false,
 });
 
-
-const MAP_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
 function DashboardContent() {
   const [reports, setReports] = React.useState<Report[]>(mockReports);
   const [selectedReport, setSelectedReport] = React.useState<Report | null>(null);
@@ -87,50 +84,37 @@ function DashboardContent() {
   };
   
   const handleMapClick = (e: google.maps.MapMouseEvent) => {
-    if (isReportDialogOpen && e.latLng) {
+    if (e.latLng) {
       const location = { lat: e.latLng.lat(), lng: e.latLng.lng() };
       setNewReportLocation(location);
-      toast({
-        title: "Location Pinned",
-        description: "The location for your new report has been set.",
-      })
+      setReportDialogOpen(true);
     }
   };
   
   const handleNewReportClick = () => {
     setSelectedReport(null);
-    setNewReportLocation(null); // Clear previous pin
+    setNewReportLocation(null);
     setReportDialogOpen(true);
     toast({
-        title: "Pin a Location",
-        description: "Click on the map to set a location for your report.",
-      });
+        title: "Pin a Location on the Map",
+        description: "Click on the map to set a location for your new report.",
+    });
   };
 
   const handleDialogClose = (open: boolean) => {
     if (!open) {
-      setNewReportLocation(null); // Clear the pin when dialog closes
+      setNewReportLocation(null); 
     }
     setReportDialogOpen(open);
   }
 
-  const handlePlaceSelect = async (place: google.maps.places.AutocompletePrediction | null) => {
-    if (!place) return;
+  const handlePlaceSelect = async (place: google.maps.places.PlaceResult | null) => {
+    if (!place || !place.geometry || !place.geometry.location) return;
     
-    const address = place.description;
-    try {
-        const results = await getGeocode({ address });
-        const { lat, lng } = await getLatLng(results[0]);
-        setMapCenter({ lat, lng });
-        setMapZoom(16);
-    } catch (error) {
-        console.error("Error getting geocode: ", error);
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Could not fetch location details. Please try again."
-        })
-    }
+    const lat = place.geometry.location.lat();
+    const lng = place.geometry.location.lng();
+    setMapCenter({ lat, lng });
+    setMapZoom(16);
   };
   
   return (
