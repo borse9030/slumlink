@@ -12,24 +12,40 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Landmark } from "lucide-react"
+import { Landmark, Loader2 } from "lucide-react"
 import { ClientOnly } from "@/components/client-only"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
+import React, { useState } from "react"
+import { createUserWithEmailAndPassword } from "firebase/auth"
+import { auth } from "@/lib/firebase"
 
 export default function GovernmentSignupPage() {
   const { toast } = useToast()
   const router = useRouter()
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    // In a real app, you would handle user creation with Firebase Auth here.
-    toast({
-      title: "Account Created",
-      description: "Your government account has been successfully created.",
-    })
-    // Redirect to login page after showing toast
-    router.push('/login/government');
+    setIsLoading(true);
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      toast({
+        title: "Account Created",
+        description: "Your government account has been successfully created.",
+      })
+      router.push('/login/government');
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Signup Failed",
+        description: error.message,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -64,6 +80,8 @@ export default function GovernmentSignupPage() {
                   type="email"
                   placeholder="m@example.gov"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
                <div className="grid gap-2">
@@ -72,9 +90,16 @@ export default function GovernmentSignupPage() {
                 </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" required/>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </div>
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Create an account
               </Button>
             </form>

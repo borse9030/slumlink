@@ -1,3 +1,4 @@
+
 export type ReportType = "Water" | "Electricity" | "Education" | "Sanitation" | "Healthcare";
 export type ReportSeverity = "Low" | "Medium" | "High";
 export type ReportStatus = "Pending" | "In Progress" | "Resolved";
@@ -31,4 +32,6 @@ export type User = {
     email: string;
     avatarUrl: string;
     role: UserRole;
+    ngoName?: string;
+    department?: string;
 };
