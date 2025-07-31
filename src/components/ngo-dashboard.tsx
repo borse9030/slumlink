@@ -48,6 +48,7 @@ import { getGeocode, getLatLng } from "use-places-autocomplete";
 import { useUser } from "@/hooks/useUser";
 import { getReports } from "@/lib/report-service";
 import { Skeleton } from "./ui/skeleton";
+import { auth } from "@/lib/firebase";
 
 const PlacesAutocomplete = dynamic(() => import('./places-autocomplete').then(mod => mod.PlacesAutocomplete), {
   ssr: false,
@@ -80,19 +81,18 @@ function NgoDashboardContent() {
   const placesLib = useMapsLibrary('places');
 
   const fetchReports = React.useCallback(async () => {
+    if (!user) return;
     setIsLoadingReports(true);
     const reportsFromDb = await getReports();
     // Filter reports by current user for NGO dashboard
-    const userReports = reportsFromDb.filter(report => report.user.id === user?.id);
+    const userReports = reportsFromDb.filter(report => report.user.id === user.id);
     setReports(userReports);
     setIsLoadingReports(false);
-  }, [user?.id]);
+  }, [user]);
 
   React.useEffect(() => {
-    if (user) {
-      fetchReports();
-    }
-  }, [user, fetchReports]);
+    fetchReports();
+  }, [fetchReports]);
 
   const filteredReports = reports.filter(report => {
     return (
@@ -156,7 +156,8 @@ function NgoDashboardContent() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await auth.signOut();
     router.push('/login');
   };
 

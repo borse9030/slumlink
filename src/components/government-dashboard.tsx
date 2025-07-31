@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -48,6 +47,7 @@ import { getGeocode, getLatLng } from "use-places-autocomplete";
 import { useUser } from "@/hooks/useUser";
 import { getReports } from "@/lib/report-service";
 import { Skeleton } from "./ui/skeleton";
+import { auth } from "@/lib/firebase";
 
 const PlacesAutocomplete = dynamic(() => import('./places-autocomplete').then(mod => mod.PlacesAutocomplete), {
   ssr: false,
@@ -89,7 +89,7 @@ function GovernmentDashboardContent() {
   }, []);
 
   const filteredReports = reports.filter(report => {
-    const ngoNameMatch = ngoFilter === 'all' || (report.user && report.user.name && report.user.name.includes(ngoFilter));
+    const ngoNameMatch = ngoFilter === 'all' || (report.user?.name && report.user.name.toLowerCase().includes(ngoFilter.toLowerCase()));
     return (
       (zoneFilter === 'all' || report.zone === zoneFilter) &&
       (statusFilter === 'all' || report.status === statusFilter) &&
@@ -98,7 +98,7 @@ function GovernmentDashboardContent() {
   });
   
   const allZones = [...new Set(reports.map(r => r.zone))];
-  const allNgos = [...new Set(reports.filter(r => r.user && r.user.name).map(r => r.user.name.split(' ')[0]))]; // Mock NGO names
+  const allNgos = [...new Set(reports.map(r => r.user?.name?.split(' ')[0] || 'Unknown').filter(Boolean))];
 
 
   const handleCardClick = (report: Report) => {
@@ -126,7 +126,8 @@ function GovernmentDashboardContent() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await auth.signOut();
     router.push('/login');
   };
   

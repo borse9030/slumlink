@@ -38,7 +38,7 @@ export default function GovernmentLoginPage() {
       toast({
         variant: 'destructive',
         title: "Login Failed",
-        description: error.message,
+        description: "Please check your email and password.",
       });
     } finally {
       setIsLoading(false);
@@ -100,7 +100,7 @@ export default function GovernmentLoginPage() {
             <div className="mt-4 text-center text-sm">
               Need an account?{" "}
               <Link href="/signup/government" className="underline">
-                Request Access
+                Sign up
               </Link>
             </div>
           </ClientOnly>
