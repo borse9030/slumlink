@@ -99,9 +99,9 @@ export default function NgoLoginPage() {
             </form>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
-              <button onClick={() => router.push('/signup/ngo')} className="underline">
+              <Link href="/signup/ngo" className="underline">
                 Sign up
-              </button>
+              </Link>
             </div>
           </ClientOnly>
         </CardContent>
