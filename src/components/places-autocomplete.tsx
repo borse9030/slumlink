@@ -1,93 +1,95 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useMapsLibrary } from "@vis.gl/react-google-maps";
+import usePlacesAutocomplete, {
+  getGeocode,
+  getLatLng,
+} from "use-places-autocomplete";
 import { Input } from "./ui/input";
 import { Card } from "./ui/card";
 import { Search } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 type PlacesAutocompleteProps = {
-    onPlaceSelect: (place: google.maps.places.AutocompletePrediction) => void;
+  onPlaceSelect: (address: string) => void;
 };
 
 export function PlacesAutocomplete({ onPlaceSelect }: PlacesAutocompleteProps) {
-    const placesLib = useMapsLibrary('places');
-    const [inputValue, setInputValue] = useState('');
-    const [suggestions, setSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([]);
-    const autocompleteService = useRef<google.maps.places.AutocompleteService | null>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
+  const {
+    ready,
+    value,
+    suggestions: { status, data },
+    setValue,
+    clearSuggestions,
+  } = usePlacesAutocomplete({
+    requestOptions: {
+      /* Define search scope here */
+    },
+    debounce: 300,
+  });
+  const ref = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        if (placesLib) {
-            autocompleteService.current = new placesLib.AutocompleteService();
-        }
-    }, [placesLib]);
-    
-    useEffect(() => {
-        if (!placesLib || !autocompleteService.current || !inputValue) {
-            setSuggestions([]);
-            return;
-        }
+  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value);
+  };
 
-        const request = {
-            input: inputValue,
-        };
-
-        autocompleteService.current.getPlacePredictions(request, (predictions, status) => {
-            if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
-                setSuggestions(predictions);
-            } else {
-                setSuggestions([]);
-            }
-        });
-    }, [inputValue, placesLib]);
-
-
-    // Close suggestions when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-                setSuggestions([]);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
-
-    const handleSuggestionClick = (prediction: google.maps.places.AutocompletePrediction) => {
-        setInputValue(prediction.description);
-        setSuggestions([]);
-        onPlaceSelect(prediction);
+  const handleSelect =
+    ({ description }: { description: string }) =>
+    () => {
+      // When user selects a place, we can replace the keyword without request data from API
+      // by setting the second parameter to "false"
+      setValue(description, false);
+      clearSuggestions();
+      onPlaceSelect(description);
     };
 
-    return (
-        <div className="relative w-full" ref={containerRef}>
-            <div className="relative">
-                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                    type="text"
-                    placeholder="Search for a location..."
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    className="w-full pl-9"
-                />
-            </div>
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+        if (ref.current && !ref.current.contains(event.target as Node)) {
+            clearSuggestions();
+        }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [clearSuggestions]);
 
-            {suggestions.length > 0 && (
-                <Card className="absolute top-full mt-1 w-full bg-card border rounded-md shadow-lg z-20">
-                    {suggestions.map((suggestion) => (
-                        <div
-                            key={suggestion.place_id}
-                            className="p-2 hover:bg-muted cursor-pointer text-sm"
-                            onClick={() => handleSuggestionClick(suggestion)}
-                        >
-                            {suggestion.description}
-                        </div>
-                    ))}
-                </Card>
-            )}
+
+  const renderSuggestions = () =>
+    data.map((suggestion) => {
+      const {
+        place_id,
+        structured_formatting: { main_text, secondary_text },
+      } = suggestion;
+
+      return (
+        <div
+            key={place_id}
+            onClick={handleSelect(suggestion)}
+            className="p-2 hover:bg-muted cursor-pointer text-sm"
+        >
+          <strong>{main_text}</strong> <small>{secondary_text}</small>
         </div>
-    );
+      );
+    });
+
+  return (
+    <div className="relative w-full" ref={ref}>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          value={value}
+          onChange={handleInput}
+          disabled={!ready}
+          placeholder="Search for a location..."
+          className="w-full pl-9"
+        />
+      </div>
+      {status === "OK" && (
+        <Card className="absolute top-full mt-1 w-full bg-card border rounded-md shadow-lg z-20">
+          {renderSuggestions()}
+        </Card>
+      )}
+    </div>
+  );
 }

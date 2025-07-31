@@ -107,9 +107,9 @@ export function DashboardPage() {
     setReportDialogOpen(open);
   }
 
-  const handlePlaceSelect = async (place: google.maps.places.AutocompletePrediction) => {
+  const handlePlaceSelect = async (address: string) => {
     try {
-        const results = await getGeocode({ address: place.description });
+        const results = await getGeocode({ address });
         const { lat, lng } = await getLatLng(results[0]);
         setMapCenter({ lat, lng });
         setMapZoom(16);
@@ -210,7 +210,7 @@ export function DashboardPage() {
               Infrastructure Dashboard
             </h2>
           </div>
-          <div className="flex-1 max-w-md mx-auto">
+          <div className="flex-1 max-w-sm mx-auto">
              <PlacesAutocomplete onPlaceSelect={handlePlaceSelect} />
           </div>
           <div className="flex items-center gap-4">
@@ -218,7 +218,6 @@ export function DashboardPage() {
                 open={isReportDialogOpen}
                 onOpenChange={handleDialogClose}
                 location={newReportLocation}
-                onLocationChange={setNewReportLocation}
             >
                 <Button onClick={handleNewReport}>
                   <PlusCircle className="mr-2 h-4 w-4" />
