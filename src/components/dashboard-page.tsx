@@ -43,9 +43,12 @@ import type { Report, ReportSeverity, ReportStatus, ReportType } from "@/lib/typ
 import { mockReports } from "@/lib/data";
 import { Filter, LogOut, PlusCircle, Settings, User as UserIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getGeocode, getLatLng } from 'use-places-autocomplete';
 import { APIProvider, useMapsLibrary } from "@vis.gl/react-google-maps";
-import { PlacesAutocomplete } from "./places-autocomplete";
+import { getGeocode, getLatLng } from "use-places-autocomplete";
+
+const PlacesAutocomplete = dynamic(() => import('./places-autocomplete').then(mod => mod.PlacesAutocomplete), {
+  ssr: false,
+});
 
 const MapView = dynamic(() => import('./map-view').then(mod => mod.MapView), {
   ssr: false,
@@ -83,21 +86,18 @@ function DashboardContent() {
     setMapZoom(16);
   };
   
-  const handleMapClick = (e: google.maps.MapMouseEvent) => {
-    if (e.latLng) {
-      const location = { lat: e.latLng.lat(), lng: e.latLng.lng() };
-      setNewReportLocation(location);
-      setReportDialogOpen(true);
-    }
+  const handleDoubleRightClick = (lat: number, lng: number) => {
+    setNewReportLocation({ lat, lng });
+    setReportDialogOpen(true);
   };
   
   const handleNewReportClick = () => {
     setSelectedReport(null);
-    setNewReportLocation(null);
+    setNewReportLocation(null); // Clear any previous location
     setReportDialogOpen(true);
     toast({
         title: "Pin a Location on the Map",
-        description: "Click on the map to set a location for your new report.",
+        description: "Double right-click on the map to set a location for your new report.",
     });
   };
 
@@ -108,13 +108,22 @@ function DashboardContent() {
     setReportDialogOpen(open);
   }
 
-  const handlePlaceSelect = async (place: google.maps.places.PlaceResult | null) => {
-    if (!place || !place.geometry || !place.geometry.location) return;
-    
-    const lat = place.geometry.location.lat();
-    const lng = place.geometry.location.lng();
-    setMapCenter({ lat, lng });
-    setMapZoom(16);
+  const handlePlaceSelect = async (place: google.maps.places.AutocompletePrediction | null) => {
+    if (!place) return;
+
+    try {
+      const results = await getGeocode({ placeId: place.place_id });
+      const { lat, lng } = getLatLng(results[0]);
+      setMapCenter({ lat, lng });
+      setMapZoom(16);
+    } catch (error) {
+      console.error("Error getting geocode: ", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not fetch location data. Please try again."
+      });
+    }
   };
   
   return (
@@ -241,7 +250,7 @@ function DashboardContent() {
               reports={filteredReports} 
               selectedReport={selectedReport} 
               onMarkerClick={handleCardClick}
-              onMapClick={handleMapClick}
+              onDoubleRightClick={handleDoubleRightClick}
               newReportLocation={newReportLocation}
               center={mapCenter}
               zoom={mapZoom}
