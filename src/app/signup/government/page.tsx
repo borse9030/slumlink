@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -14,6 +15,7 @@ import { Label } from "@/components/ui/label"
 import { Landmark } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import React from "react"
+import { ClientOnly } from "@/components/client-only"
 
 export default function GovernmentSignupPage() {
   const { toast } = useToast()
@@ -39,44 +41,46 @@ export default function GovernmentSignupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="first-name">First name</Label>
-                <Input id="first-name" placeholder="Max" required />
+          <ClientOnly>
+            <form onSubmit={handleSubmit} className="grid gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="first-name">First name</Label>
+                  <Input id="first-name" placeholder="Max" required />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="last-name">Last name</Label>
+                  <Input id="last-name" placeholder="Robinson" required />
+                </div>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="last-name">Last name</Label>
-                <Input id="last-name" placeholder="Robinson" required />
+                <Label htmlFor="email">Official Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.gov"
+                  required
+                />
               </div>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="email">Official Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="m@example.gov"
-                required
-              />
-            </div>
-             <div className="grid gap-2">
-                <Label htmlFor="department">Department/Agency</Label>
-                <Input id="department" placeholder="e.g. Municipal Corporation" required />
+               <div className="grid gap-2">
+                  <Label htmlFor="department">Department/Agency</Label>
+                  <Input id="department" placeholder="e.g. Municipal Corporation" required />
+                </div>
+              <div className="grid gap-2">
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" type="password" />
               </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" />
+              <Button type="submit" className="w-full">
+                Submit Request
+              </Button>
+            </form>
+            <div className="mt-4 text-center text-sm">
+              Already have an account?{" "}
+              <Link href="/login/government" className="underline">
+                Login
+              </Link>
             </div>
-            <Button type="submit" className="w-full">
-              Submit Request
-            </Button>
-          </form>
-          <div className="mt-4 text-center text-sm">
-            Already have an account?{" "}
-            <Link href="/login/government" className="underline">
-              Login
-            </Link>
-          </div>
+          </ClientOnly>
         </CardContent>
       </Card>
     </div>

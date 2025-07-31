@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -12,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Landmark } from "lucide-react"
+import { ClientOnly } from "@/components/client-only"
 
 export default function GovernmentLoginPage() {
   return (
@@ -27,41 +29,43 @@ export default function GovernmentLoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="m@example.gov"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  href="#"
-                  className="ml-auto inline-block text-sm underline"
-                >
-                  Forgot your password?
-                </Link>
+          <ClientOnly>
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.gov"
+                  required
+                />
               </div>
-              <Input id="password" type="password" required />
+              <div className="grid gap-2">
+                <div className="flex items-center">
+                  <Label htmlFor="password">Password</Label>
+                  <Link
+                    href="#"
+                    className="ml-auto inline-block text-sm underline"
+                  >
+                    Forgot your password?
+                  </Link>
+                </div>
+                <Input id="password" type="password" required />
+              </div>
+              <Button type="submit" className="w-full">
+                Login
+              </Button>
+              <Button variant="outline" className="w-full">
+                Login with Official ID
+              </Button>
             </div>
-            <Button type="submit" className="w-full">
-              Login
-            </Button>
-            <Button variant="outline" className="w-full">
-              Login with Official ID
-            </Button>
-          </div>
-          <div className="mt-4 text-center text-sm">
-            Need an account?{" "}
-            <Link href="/signup/government" className="underline">
-              Request Access
-            </Link>
-          </div>
+            <div className="mt-4 text-center text-sm">
+              Need an account?{" "}
+              <Link href="/signup/government" className="underline">
+                Request Access
+              </Link>
+            </div>
+          </ClientOnly>
         </CardContent>
       </Card>
     </div>

@@ -1,3 +1,4 @@
+
 "use client"
 
 import type { Report } from "@/lib/types";
@@ -18,7 +19,9 @@ export function ReportCard({ report, isSelected, onClick }: ReportCardProps) {
 
   useEffect(() => {
     // This code runs only on the client, after hydration, to prevent mismatch
-    setTimeAgo(formatDistanceToNow(new Date(report.createdAt), { addSuffix: true }));
+    if (report.createdAt) {
+      setTimeAgo(formatDistanceToNow(new Date(report.createdAt), { addSuffix: true }));
+    }
   }, [report.createdAt]);
 
 

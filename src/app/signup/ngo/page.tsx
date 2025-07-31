@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -12,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Building } from "lucide-react"
+import { ClientOnly } from "@/components/client-only"
 
 export default function NgoSignupPage() {
   return (
@@ -27,47 +29,49 @@ export default function NgoSignupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="first-name">First name</Label>
-                <Input id="first-name" placeholder="Max" required />
+          <ClientOnly>
+            <div className="grid gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="first-name">First name</Label>
+                  <Input id="first-name" placeholder="Max" required />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="last-name">Last name</Label>
+                  <Input id="last-name" placeholder="Robinson" required />
+                </div>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="last-name">Last name</Label>
-                <Input id="last-name" placeholder="Robinson" required />
+                  <Label htmlFor="ngo-name">NGO Name</Label>
+                  <Input id="ngo-name" placeholder="e.g. Shelter Foundation" required />
               </div>
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" type="password" />
+              </div>
+              <Button type="submit" className="w-full">
+                Create an account
+              </Button>
+              <Button variant="outline" className="w-full">
+                Sign up with Google
+              </Button>
             </div>
-            <div className="grid gap-2">
-                <Label htmlFor="ngo-name">NGO Name</Label>
-                <Input id="ngo-name" placeholder="e.g. Shelter Foundation" required />
+            <div className="mt-4 text-center text-sm">
+              Already have an account?{" "}
+              <Link href="/login/ngo" className="underline">
+                Login
+              </Link>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" />
-            </div>
-            <Button type="submit" className="w-full">
-              Create an account
-            </Button>
-            <Button variant="outline" className="w-full">
-              Sign up with Google
-            </Button>
-          </div>
-          <div className="mt-4 text-center text-sm">
-            Already have an account?{" "}
-            <Link href="/login/ngo" className="underline">
-              Login
-            </Link>
-          </div>
+          </ClientOnly>
         </CardContent>
       </Card>
     </div>
