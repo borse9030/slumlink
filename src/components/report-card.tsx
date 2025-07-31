@@ -17,7 +17,7 @@ export function ReportCard({ report, isSelected, onClick }: ReportCardProps) {
   const [timeAgo, setTimeAgo] = useState("");
 
   useEffect(() => {
-    // This code runs only on the client, after hydration
+    // This code runs only on the client, after hydration, to prevent mismatch
     setTimeAgo(formatDistanceToNow(new Date(report.createdAt), { addSuffix: true }));
   }, [report.createdAt]);
 
@@ -54,7 +54,7 @@ export function ReportCard({ report, isSelected, onClick }: ReportCardProps) {
             <Badge variant="outline">{report.status}</Badge>
           </div>
           <p className="text-xs text-muted-foreground">
-            {timeAgo}
+            {timeAgo || "..."}
           </p>
         </div>
       </CardContent>

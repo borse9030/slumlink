@@ -55,7 +55,7 @@ const PlacesAutocomplete = dynamic(() => import('./places-autocomplete').then(mo
 
 const MapView = dynamic(() => import('./map-view').then(mod => mod.MapView), {
   ssr: false,
-  loading: () => <div className="h-full w-full bg-muted" />,
+  loading: () => <div className="h-full w-full bg-muted animate-pulse" />,
 });
 
 
