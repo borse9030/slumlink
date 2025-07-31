@@ -2,6 +2,7 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -16,6 +17,13 @@ import { Building } from "lucide-react"
 import { ClientOnly } from "@/components/client-only"
 
 export default function NgoLoginPage() {
+  const router = useRouter()
+
+  const handleLogin = () => {
+    // In a real app, you'd handle authentication here
+    router.push('/dashboard/ngo');
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-muted/40">
       <Card className="mx-auto max-w-sm w-full">
@@ -52,7 +60,7 @@ export default function NgoLoginPage() {
                 </div>
                 <Input id="password" type="password" required />
               </div>
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full" onClick={handleLogin}>
                 Login
               </Button>
               <Button variant="outline" className="w-full">

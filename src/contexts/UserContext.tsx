@@ -23,7 +23,7 @@ const mockGovUser: User = {
 
 
 // To switch between users for testing, change this value
-const MOCK_USER_TYPE: 'ngo' | 'government' = 'government';
+const MOCK_USER_TYPE: 'ngo' | 'government' = 'ngo';
 
 
 type UserContextType = {
