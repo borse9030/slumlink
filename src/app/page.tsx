@@ -10,21 +10,18 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && user) {
-      if (user.role === 'ngo') {
-        router.replace('/dashboard/ngo');
-      } else if (user.role === 'government') {
-        router.replace('/dashboard/government');
+    if (!isLoading) {
+      if (user) {
+        if (user.role === 'ngo') {
+          router.replace('/dashboard/ngo');
+        } else if (user.role === 'government') {
+          router.replace('/dashboard/government');
+        }
+      } else {
+        router.replace('/login');
       }
     }
   }, [user, isLoading, router]);
-  
-  // Optional: Redirect to login if not loading and no user
-  useEffect(() => {
-    if (!isLoading && !user) {
-        router.replace('/login');
-    }
-  }, [user, isLoading, router])
 
   return (
     <div className="flex h-screen w-screen items-center justify-center">
@@ -39,7 +36,7 @@ export default function Home() {
               </svg>
               <h1 className="text-4xl font-semibold font-headline">SlumLink</h1>
             </div>
-            <p className="text-muted-foreground">Redirecting to your dashboard...</p>
+            <p className="text-muted-foreground">Loading your experience...</p>
             <Skeleton className="h-4 w-48 mt-2" />
         </div>
     </div>
