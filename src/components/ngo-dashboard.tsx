@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -317,10 +318,12 @@ export function NgoDashboard() {
 
     if (!MAP_API_KEY) {
         return (
-          <div className="flex items-center justify-center h-full bg-muted">
-            <div className="text-center p-4 rounded-lg bg-card border">
-                <h2 className="text-xl font-bold">Map Unavailable</h2>
-                <p className="text-muted-foreground">Google Maps API key is missing.</p>
+          <div className="flex items-center justify-center h-screen bg-muted">
+            <div className="text-center p-8 rounded-lg bg-card border">
+                <h2 className="text-2xl font-bold text-destructive mb-2">Map Unavailable</h2>
+                <p className="text-muted-foreground max-w-sm">
+                    The Google Maps API key is missing. Please add the <code className="bg-destructive/10 text-destructive p-1 rounded-sm text-xs">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to your environment variables to enable map functionality.
+                </p>
             </div>
           </div>
         );
