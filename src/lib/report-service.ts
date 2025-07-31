@@ -3,10 +3,13 @@ import { db } from './firebase';
 import type { Report, ReportSeverity, ReportType } from './types';
 import { useUser } from '@/hooks/useUser';
 
-const reportsCollectionRef = collection(db, 'reports');
-
 // Fetch all reports from Firestore
 export const getReports = async (): Promise<Report[]> => {
+    if (!db) {
+        console.error("Firestore is not initialized.");
+        return [];
+    }
+    const reportsCollectionRef = collection(db, 'reports');
     try {
         const q = query(reportsCollectionRef, orderBy('createdAt', 'desc'));
         const querySnapshot = await getDocs(q);
@@ -37,6 +40,11 @@ export const addReport = async (reportData: {
     imageUrl?: string;
     user: { id: string; name: string; avatarUrl: string; };
 }) => {
+    if (!db) {
+        console.error("Firestore is not initialized.");
+        throw new Error("Firestore not available");
+    }
+    const reportsCollectionRef = collection(db, 'reports');
     try {
         await addDoc(reportsCollectionRef, {
             ...reportData,

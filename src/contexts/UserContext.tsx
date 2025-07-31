@@ -10,6 +10,10 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 // This function will be used to create a user document in Firestore
 // when a new user signs up.
 export const createUserDocument = async (user: FirebaseUser, role: 'ngo' | 'government', details: any) => {
+  if (!db) {
+    console.error("Firestore is not initialized.");
+    return;
+  }
   const userRef = doc(db, "users", user.uid);
   const userDoc = await getDoc(userRef);
 
@@ -55,6 +59,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!auth || !db) {
+      setIsLoading(false);
+      return;
+    }
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         // User is signed in, see docs for a list of available properties
