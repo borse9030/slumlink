@@ -65,7 +65,7 @@ export function PlacesAutocomplete({ onPlaceSelect }: PlacesAutocompleteProps) {
                     placeholder="Search for a location..."
                     value={inputValue}
                     onChange={handleInputChange}
-                    className="w-full pr-10"
+                    className="w-full"
                 />
                 {suggestions.length > 0 && (
                     <div className="absolute top-full mt-1 w-full bg-card border rounded-md shadow-lg z-20">
