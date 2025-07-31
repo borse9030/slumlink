@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  APIProvider,
   Map,
   AdvancedMarker,
   InfoWindow,
@@ -15,8 +14,6 @@ import { Badge } from "./ui/badge";
 import Image from "next/image";
 import { Droplets, Lightbulb, School, Trash2, HeartPulse, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const MAP_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 const ReportMarker = ({ report, onClick }: { report: Report; onClick: () => void }) => {
   const [markerRef, marker] = useAdvancedMarkerRef();
@@ -107,40 +104,28 @@ export function MapView({
   onCenterChanged,
   onZoomChanged,
 }: MapViewProps) {
-  if (!MAP_API_KEY) {
-    return (
-      <div className="flex items-center justify-center h-full bg-muted">
-        <div className="text-center p-4 rounded-lg bg-card border">
-            <h2 className="text-xl font-bold">Map Unavailable</h2>
-            <p className="text-muted-foreground">Google Maps API key is missing.</p>
-        </div>
-      </div>
-    );
-  }
   
   return (
-    <APIProvider apiKey={MAP_API_KEY}>
-      <Map
-        center={center}
-        zoom={zoom}
-        mapId="slumlink_map"
-        className="w-full h-full"
-        gestureHandling={'greedy'}
-        disableDefaultUI={false}
-        onClick={onMapClick}
-        onCenterChanged={(e) => onCenterChanged(e.detail.center)}
-        onZoomChanged={(e) => onZoomChanged(e.detail.zoom)}
-      >
-        {reports.map((report) => (
-          <ReportMarker key={report.id} report={report} onClick={() => onMarkerClick(report)} />
-        ))}
+    <Map
+      center={center}
+      zoom={zoom}
+      mapId="slumlink_map"
+      className="w-full h-full"
+      gestureHandling={'greedy'}
+      disableDefaultUI={false}
+      onClick={onMapClick}
+      onCenterChanged={(e) => onCenterChanged(e.detail.center)}
+      onZoomChanged={(e) => onZoomChanged(e.detail.zoom)}
+    >
+      {reports.map((report) => (
+        <ReportMarker key={report.id} report={report} onClick={() => onMarkerClick(report)} />
+      ))}
 
-        {newReportLocation && (
-          <AdvancedMarker position={newReportLocation}>
-            <Pin backgroundColor={'hsl(var(--primary))'} borderColor={'hsl(var(--primary-foreground))'} glyphColor={'hsl(var(--primary-foreground))'} />
-          </AdvancedMarker>
-        )}
-      </Map>
-    </APIProvider>
+      {newReportLocation && (
+        <AdvancedMarker position={newReportLocation}>
+          <Pin backgroundColor={'hsl(var(--primary))'} borderColor={'hsl(var(--primary-foreground))'} glyphColor={'hsl(var(--primary-foreground))'} />
+        </AdvancedMarker>
+      )}
+    </Map>
   );
 }
