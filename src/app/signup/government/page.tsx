@@ -14,13 +14,22 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Landmark } from "lucide-react"
 import { ClientOnly } from "@/components/client-only"
+import { useToast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"
 
 export default function GovernmentSignupPage() {
-  // In a real app, you would have a form submission handler here
-  // that would call a function to create a new government user account.
+  const { toast } = useToast()
+  const router = useRouter()
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    console.log("Form submitted");
+    event.preventDefault()
+    // In a real app, you would handle user creation with Firebase Auth here.
+    toast({
+      title: "Account Created",
+      description: "Your government account has been successfully created.",
+    })
+    // Redirect to login page after showing toast
+    router.push('/login/government');
   }
 
   return (
@@ -63,7 +72,7 @@ export default function GovernmentSignupPage() {
                 </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" />
+                <Input id="password" type="password" required/>
               </div>
               <Button type="submit" className="w-full">
                 Create an account
