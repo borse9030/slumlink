@@ -202,14 +202,15 @@ export function DashboardPage() {
               Infrastructure Dashboard
             </h2>
           </div>
-          <div className="flex-1 max-w-sm mx-auto">
-            <PlacesAutocomplete onPlaceSelect={handlePlaceSelect} />
+          <div className="flex-1 max-w-md mx-auto">
+             <PlacesAutocomplete onPlaceSelect={handlePlaceSelect} />
           </div>
           <div className="flex items-center gap-4">
             <ReportDialog
                 location={newReportLocation}
                 onOpenChange={handleDialogClose}
                 open={isReportDialogOpen}
+                 onLocationChange={setNewReportLocation}
             >
                 <Button onClick={handleNewReport}>
                   <PlusCircle className="mr-2 h-4 w-4" />
