@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import dynamic from 'next/dynamic';
 import {
   SidebarProvider,
   Sidebar,
@@ -43,7 +44,11 @@ import type { Report, ReportSeverity, ReportStatus, ReportType } from "@/lib/typ
 import { mockReports } from "@/lib/data";
 import { Filter, LogOut, PlusCircle, Settings, User as UserIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { PlacesAutocomplete } from "./places-autocomplete";
+
+const PlacesAutocomplete = dynamic(() => import('./places-autocomplete').then(mod => mod.PlacesAutocomplete), {
+  ssr: false,
+});
+
 
 export function DashboardPage() {
   const [reports, setReports] = React.useState<Report[]>(mockReports);
@@ -200,6 +205,7 @@ export function DashboardPage() {
                 location={newReportLocation}
                 onOpenChange={handleDialogClose}
                 open={isReportDialogOpen}
+                onLocationSelect={setNewReportLocation}
             >
                 <Button onClick={handleNewReport}>
                   <PlusCircle className="mr-2 h-4 w-4" />
