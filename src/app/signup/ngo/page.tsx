@@ -19,12 +19,16 @@ import { useRouter } from "next/navigation"
 import React, { useState } from "react"
 import { createUserWithEmailAndPassword } from "firebase/auth"
 import { auth } from "@/lib/firebase"
+import { createUserDocument } from "@/contexts/UserContext"
 
 export default function NgoSignupPage() {
   const { toast } = useToast()
   const router = useRouter()
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [ngoName, setNgoName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
 
@@ -32,7 +36,8 @@ export default function NgoSignupPage() {
     event.preventDefault()
     setIsLoading(true);
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await createUserDocument(userCredential.user, 'ngo', { firstName, lastName, ngoName });
       toast({
         title: "Account Created",
         description: "Your NGO account has been successfully created.",
@@ -67,16 +72,34 @@ export default function NgoSignupPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="first-name">First name</Label>
-                  <Input id="first-name" placeholder="Max" required />
+                  <Input 
+                    id="first-name" 
+                    placeholder="Max" 
+                    required 
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="last-name">Last name</Label>
-                  <Input id="last-name" placeholder="Robinson" required />
+                  <Input 
+                    id="last-name" 
+                    placeholder="Robinson" 
+                    required 
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
                 </div>
               </div>
               <div className="grid gap-2">
                   <Label htmlFor="ngo-name">NGO Name</Label>
-                  <Input id="ngo-name" placeholder="e.g. Shelter Foundation" required />
+                  <Input 
+                    id="ngo-name" 
+                    placeholder="e.g. Shelter Foundation" 
+                    required 
+                    value={ngoName}
+                    onChange={(e) => setNgoName(e.target.value)}
+                  />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>

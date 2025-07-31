@@ -9,7 +9,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 // This function will be used to create a user document in Firestore
 // when a new user signs up.
-const createUserDocument = async (user: FirebaseUser, role: 'ngo' | 'government', details: any) => {
+export const createUserDocument = async (user: FirebaseUser, role: 'ngo' | 'government', details: any) => {
   const userRef = doc(db, "users", user.uid);
   const userDoc = await getDoc(userRef);
 
@@ -26,10 +26,10 @@ const createUserDocument = async (user: FirebaseUser, role: 'ngo' | 'government'
       role: role
     };
 
-    if(role === 'ngo') {
+    if(role === 'ngo' && ngoName) {
       (userData as any).ngoName = ngoName;
     }
-    if(role === 'government') {
+    if(role === 'government' && department) {
       (userData as any).department = department;
     }
 
@@ -75,8 +75,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
                 // This is a simplification. The role should be determined during signup.
                 // We'll default to 'ngo' but this might need adjustment.
                 role: 'ngo', 
-                avatarUrl: firebaseUser.photoURL || 'https://placehold.co/100x100'
+                avatarUrl: firebaseUser.photoURL || `https://placehold.co/100x100?text=${(firebaseUser.email || 'A').charAt(0)}`
             };
+            // This case might happen if a user is created in Auth but Firestore doc creation fails.
+            // We can try creating it again here.
             await setDoc(userRef, newUser)
             setUser(newUser);
         }
