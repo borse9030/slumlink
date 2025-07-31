@@ -9,7 +9,7 @@ import {
   Pin,
 } from "@vis.gl/react-google-maps";
 import type { Report } from "@/lib/types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
 import { Badge } from "./ui/badge";
 import Image from "next/image";
@@ -93,6 +93,17 @@ type MapViewProps = {
 };
 
 export function MapView({ reports, selectedReport, onMarkerClick, onMapClick, newReportLocation }: MapViewProps) {
+  const [center, setCenter] = useState({ lat: 19.043, lng: 72.859 });
+  const [zoom, setZoom] = useState(14);
+
+  useEffect(() => {
+    if (selectedReport) {
+      setCenter(selectedReport.location);
+      setZoom(16);
+    }
+  }, [selectedReport]);
+
+
   if (!MAP_API_KEY) {
     return (
       <div className="flex items-center justify-center h-full bg-muted">
@@ -104,18 +115,18 @@ export function MapView({ reports, selectedReport, onMarkerClick, onMapClick, ne
     );
   }
   
-  const mapCenter = selectedReport ? selectedReport.location : { lat: 19.043, lng: 72.859 };
-
   return (
     <APIProvider apiKey={MAP_API_KEY}>
       <Map
-        center={mapCenter}
-        zoom={selectedReport ? 16 : 14}
+        center={center}
+        zoom={zoom}
         mapId="slumlink_map"
         className="w-full h-full"
         gestureHandling={'greedy'}
         disableDefaultUI={false}
         onClick={onMapClick}
+        onCenterChanged={(e) => setCenter(e.detail.center)}
+        onZoomChanged={(e) => setZoom(e.detail.zoom)}
       >
         {reports.map((report) => (
           <ReportMarker key={report.id} report={report} onClick={() => onMarkerClick(report)} />
