@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useMapsLibrary } from "@vis.gl/react-google-maps";
 import { Input } from "./ui/input";
 import { Card } from "./ui/card";
+import { Search } from "lucide-react";
 
 type PlacesAutocompleteProps = {
     onPlaceSelect: (place: google.maps.places.PlaceResult) => void;
@@ -75,13 +76,17 @@ export function PlacesAutocomplete({ onPlaceSelect }: PlacesAutocompleteProps) {
 
     return (
         <div className="relative w-full" ref={containerRef}>
-            <Input
-                type="text"
-                placeholder="Search for a location..."
-                value={inputValue}
-                onChange={handleInputChange}
-                className="w-full"
-            />
+            <div className="relative">
+                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                    type="text"
+                    placeholder="Search for a location..."
+                    value={inputValue}
+                    onChange={handleInputChange}
+                    className="w-full pl-9"
+                />
+            </div>
+
             {suggestions.length > 0 && (
                 <Card className="absolute top-full mt-1 w-full bg-card border rounded-md shadow-lg z-20">
                     {suggestions.map((suggestion) => (

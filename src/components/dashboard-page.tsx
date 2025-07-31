@@ -202,7 +202,7 @@ export function DashboardPage() {
               Infrastructure Dashboard
             </h2>
           </div>
-          <div className="w-full max-w-xs">
+          <div className="flex-1 max-w-sm mx-auto">
             <PlacesAutocomplete onPlaceSelect={handlePlaceSelect} />
           </div>
           <div className="flex items-center gap-4">
