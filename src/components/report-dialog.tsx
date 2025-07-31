@@ -50,7 +50,7 @@ export function ReportDialog({ children, onOpenChange, open, location }: ReportD
         toast({
             variant: "destructive",
             title: "Location Missing",
-            description: "Please double right-click a location on the map before submitting.",
+            description: "Please click a location on the map before submitting.",
         });
         return;
     }
@@ -70,7 +70,7 @@ export function ReportDialog({ children, onOpenChange, open, location }: ReportD
         <DialogHeader>
           <DialogTitle>Submit New Report</DialogTitle>
           <DialogDescription>
-            Help improve community infrastructure. Double right-click on the map to pin a location.
+            Help improve community infrastructure. Click on the map to pin a location.
           </DialogDescription>
         </DialogHeader>
         {!location && open && (
@@ -78,7 +78,7 @@ export function ReportDialog({ children, onOpenChange, open, location }: ReportD
                 <MapPin className="h-4 w-4" />
                 <AlertTitle>Select a Location</AlertTitle>
                 <AlertDescription>
-                    Please double right-click on the map to specify the exact location of the issue.
+                    Please click on the map to specify the exact location of the issue.
                 </AlertDescription>
             </Alert>
         )}

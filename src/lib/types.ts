@@ -23,9 +23,12 @@ export type Report = {
   createdAt: string; // ISO date string
 };
 
+export type UserRole = 'ngo' | 'government';
+
 export type User = {
     id: string;
     name: string;
     email: string;
     avatarUrl: string;
+    role: UserRole;
 };

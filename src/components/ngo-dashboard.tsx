@@ -45,6 +45,7 @@ import { Filter, LogOut, PlusCircle, Settings, User as UserIcon } from "lucide-r
 import { useToast } from "@/hooks/use-toast";
 import { APIProvider, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { getGeocode, getLatLng } from "use-places-autocomplete";
+import { useUser } from "@/hooks/useUser";
 
 const PlacesAutocomplete = dynamic(() => import('./places-autocomplete').then(mod => mod.PlacesAutocomplete), {
   ssr: false,
@@ -54,13 +55,14 @@ const MapView = dynamic(() => import('./map-view').then(mod => mod.MapView), {
   ssr: false,
 });
 
-function DashboardContent() {
+function NgoDashboardContent() {
   const [reports, setReports] = React.useState<Report[]>(mockReports);
   const [selectedReport, setSelectedReport] = React.useState<Report | null>(null);
   const [isReportDialogOpen, setReportDialogOpen] = React.useState(false);
   
   const [newReportLocation, setNewReportLocation] = React.useState<{ lat: number; lng: number } | null>(null);
   const { toast } = useToast();
+  const { user } = useUser();
 
   const [mapCenter, setMapCenter] = React.useState({ lat: 19.043, lng: 72.859 });
   const [mapZoom, setMapZoom] = React.useState(14);
@@ -86,9 +88,9 @@ function DashboardContent() {
     setMapZoom(16);
   };
   
-  const handleDoubleRightClick = (lat: number, lng: number) => {
-    setNewReportLocation({ lat, lng });
-    setReportDialogOpen(true);
+  const handleMapClick = (lat: number, lng: number) => {
+      setNewReportLocation({ lat, lng });
+      setReportDialogOpen(true);
   };
   
   const handleNewReportClick = () => {
@@ -96,13 +98,14 @@ function DashboardContent() {
     setNewReportLocation(null); // Clear any previous location
     setReportDialogOpen(true);
     toast({
-        title: "Pin a Location on the Map",
-        description: "Double right-click on the map to set a location for your new report.",
+        title: "Click on the Map",
+        description: "Click anywhere on the map to set a location for your new report.",
     });
   };
 
   const handleDialogClose = (open: boolean) => {
     if (!open) {
+      setSelectedReport(null);
       setNewReportLocation(null); 
     }
     setReportDialogOpen(open);
@@ -209,7 +212,7 @@ function DashboardContent() {
             <div className="flex items-center gap-4">
               <SidebarTrigger />
               <h2 className="text-lg font-semibold font-headline hidden sm:block">
-                Infrastructure Dashboard
+                NGO Dashboard
               </h2>
             </div>
             <div className="flex-1 max-w-sm mx-auto">
@@ -229,12 +232,12 @@ function DashboardContent() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Avatar className="cursor-pointer">
-                    <AvatarImage src="https://placehold.co/100x100" alt="@fieldworker" />
-                    <AvatarFallback>FW</AvatarFallback>
+                    <AvatarImage src={user?.avatarUrl} alt={user?.name} />
+                    <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
                   </Avatar>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuLabel>{user?.name}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem><UserIcon className="mr-2 h-4 w-4" /> Profile</DropdownMenuItem>
                   <DropdownMenuItem><Settings className="mr-2 h-4 w-4" /> Settings</DropdownMenuItem>
@@ -250,7 +253,7 @@ function DashboardContent() {
               reports={filteredReports} 
               selectedReport={selectedReport} 
               onMarkerClick={handleCardClick}
-              onDoubleRightClick={handleDoubleRightClick}
+              onMapClick={handleMapClick}
               newReportLocation={newReportLocation}
               center={mapCenter}
               zoom={mapZoom}
@@ -264,7 +267,7 @@ function DashboardContent() {
 }
 
 
-export function DashboardPage() {
+export function NgoDashboard() {
     const MAP_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
     if (!MAP_API_KEY) {
@@ -280,7 +283,7 @@ export function DashboardPage() {
 
     return (
         <APIProvider apiKey={MAP_API_KEY} libraries={['places']}>
-            <DashboardContent />
+            <NgoDashboardContent />
         </APIProvider>
     )
 }

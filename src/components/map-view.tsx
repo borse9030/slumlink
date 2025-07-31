@@ -9,7 +9,7 @@ import {
   useMap,
 } from "@vis.gl/react-google-maps";
 import type { Report } from "@/lib/types";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
 import { Badge } from "./ui/badge";
 import Image from "next/image";
@@ -86,7 +86,7 @@ type MapViewProps = {
   reports: Report[];
   selectedReport: Report | null;
   onMarkerClick: (report: Report) => void;
-  onDoubleRightClick: (lat: number, lng: number) => void;
+  onMapClick: (lat: number, lng: number) => void;
   newReportLocation: { lat: number; lng: number } | null;
   center: { lat: number; lng: number };
   zoom: number;
@@ -98,7 +98,7 @@ export function MapView({
   reports, 
   selectedReport, 
   onMarkerClick, 
-  onDoubleRightClick,
+  onMapClick,
   newReportLocation,
   center,
   zoom,
@@ -106,44 +106,20 @@ export function MapView({
   onZoomChanged,
 }: MapViewProps) {
   const map = useMap();
-  const rightClickCount = useRef(0);
-  const timer = useRef<NodeJS.Timeout | null>(null);
-
+  
   useEffect(() => {
     if (!map) return;
 
-    // Prevent the default context menu from appearing on right-click
-    const contextMenuListener = map.addListener('contextmenu', (e: google.maps.MapMouseEvent) => {
-        if (e.domEvent) {
-            e.domEvent.preventDefault();
+    const clickListener = map.addListener('click', (e: google.maps.MapMouseEvent) => {
+        if (e.latLng) {
+            onMapClick(e.latLng.lat(), e.latLng.lng());
         }
-    });
-
-    const rightClickListener = map.addListener('rightclick', (e: google.maps.MapMouseEvent) => {
-      if (e.latLng) {
-        rightClickCount.current += 1;
-
-        if (rightClickCount.current === 2) {
-          const lat = e.latLng.lat();
-          const lng = e.latLng.lng();
-          onDoubleRightClick(lat, lng);
-          rightClickCount.current = 0; // reset
-          if (timer.current) clearTimeout(timer.current);
-        } else {
-          // Reset the count if 2nd click doesn't come within 1.5 sec
-          timer.current = setTimeout(() => {
-            rightClickCount.current = 0;
-          }, 1500);
-        }
-      }
     });
 
     return () => {
-      google.maps.event.removeListener(rightClickListener);
-      google.maps.event.removeListener(contextMenuListener);
-      if (timer.current) clearTimeout(timer.current);
+      google.maps.event.removeListener(clickListener);
     };
-  }, [map, onDoubleRightClick]);
+  }, [map, onMapClick]);
   
   return (
     <Map
