@@ -100,10 +100,10 @@ export function DashboardPage() {
   };
 
   const handleDialogClose = (open: boolean) => {
-    setReportDialogOpen(open);
     if (!open) {
       setNewReportLocation(null); // Reset location on close
     }
+    setReportDialogOpen(open);
   }
 
   const handlePlaceSelect = (place: google.maps.places.PlaceResult) => {
@@ -195,17 +195,21 @@ export function DashboardPage() {
       </Sidebar>
 
       <SidebarInset>
-        <header className="flex items-center justify-between p-4 border-b">
-          <SidebarTrigger />
-          <h2 className="text-lg font-semibold font-headline">
-            Infrastructure Dashboard
-          </h2>
+        <header className="flex items-center justify-between p-4 border-b gap-4">
+          <div className="flex items-center gap-4">
+            <SidebarTrigger />
+            <h2 className="text-lg font-semibold font-headline hidden sm:block">
+              Infrastructure Dashboard
+            </h2>
+          </div>
+          <div className="w-full max-w-xs">
+            <PlacesAutocomplete onPlaceSelect={handlePlaceSelect} />
+          </div>
           <div className="flex items-center gap-4">
             <ReportDialog
                 location={newReportLocation}
                 onOpenChange={handleDialogClose}
                 open={isReportDialogOpen}
-                onLocationSelect={setNewReportLocation}
             >
                 <Button onClick={handleNewReport}>
                   <PlusCircle className="mr-2 h-4 w-4" />
@@ -232,7 +236,6 @@ export function DashboardPage() {
         </header>
 
         <main className="flex-1 relative">
-          <PlacesAutocomplete onPlaceSelect={handlePlaceSelect} />
           <MapView 
             reports={filteredReports} 
             selectedReport={selectedReport} 
