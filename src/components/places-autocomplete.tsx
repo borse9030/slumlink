@@ -7,27 +7,41 @@ import { Card } from "./ui/card";
 import { Search } from "lucide-react";
 
 type PlacesAutocompleteProps = {
-    onPlaceSelect: (place: google.maps.places.PlaceResult) => void;
+    onPlaceSelect: (place: google.maps.places.AutocompletePrediction) => void;
 };
 
 export function PlacesAutocomplete({ onPlaceSelect }: PlacesAutocompleteProps) {
-    const [inputValue, setInputValue] = useState("");
+    const placesLib = useMapsLibrary('places');
+    const [inputValue, setInputValue] = useState('');
     const [suggestions, setSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([]);
-    const places = useMapsLibrary("places");
-    const geocoding = useMapsLibrary("geocoding");
     const autocompleteService = useRef<google.maps.places.AutocompleteService | null>(null);
-    const geocoder = useRef<google.maps.Geocoder | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
-
     useEffect(() => {
-        if (places) {
-            autocompleteService.current = new places.AutocompleteService();
+        if (placesLib) {
+            autocompleteService.current = new placesLib.AutocompleteService();
         }
-        if (geocoding) {
-            geocoder.current = new geocoding.Geocoder();
+    }, [placesLib]);
+    
+    useEffect(() => {
+        if (!placesLib || !autocompleteService.current || !inputValue) {
+            setSuggestions([]);
+            return;
         }
-    }, [places, geocoding]);
+
+        const request = {
+            input: inputValue,
+        };
+
+        autocompleteService.current.getPlacePredictions(request, (predictions, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+                setSuggestions(predictions);
+            } else {
+                setSuggestions([]);
+            }
+        });
+    }, [inputValue, placesLib]);
+
 
     // Close suggestions when clicking outside
     useEffect(() => {
@@ -42,36 +56,10 @@ export function PlacesAutocomplete({ onPlaceSelect }: PlacesAutocompleteProps) {
         };
     }, []);
 
-
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const value = event.target.value;
-        setInputValue(value);
-        if (value && autocompleteService.current) {
-            autocompleteService.current.getPlacePredictions(
-                { input: value },
-                (predictions, status) => {
-                    if (status === google.maps.places.PlacesServiceStatus.OK) {
-                        setSuggestions(predictions || []);
-                    } else {
-                        setSuggestions([]);
-                    }
-                }
-            );
-        } else {
-            setSuggestions([]);
-        }
-    };
-
     const handleSuggestionClick = (prediction: google.maps.places.AutocompletePrediction) => {
         setInputValue(prediction.description);
         setSuggestions([]);
-        if (geocoder.current && prediction.place_id) {
-            geocoder.current.geocode({ placeId: prediction.place_id }, (results, status) => {
-                if (status === google.maps.GeocoderStatus.OK && results && results[0]) {
-                    onPlaceSelect(results[0]);
-                }
-            });
-        }
+        onPlaceSelect(prediction);
     };
 
     return (
@@ -82,7 +70,7 @@ export function PlacesAutocomplete({ onPlaceSelect }: PlacesAutocompleteProps) {
                     type="text"
                     placeholder="Search for a location..."
                     value={inputValue}
-                    onChange={handleInputChange}
+                    onChange={(e) => setInputValue(e.target.value)}
                     className="w-full pl-9"
                 />
             </div>

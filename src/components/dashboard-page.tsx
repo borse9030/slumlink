@@ -44,6 +44,7 @@ import type { Report, ReportSeverity, ReportStatus, ReportType } from "@/lib/typ
 import { mockReports } from "@/lib/data";
 import { Filter, LogOut, PlusCircle, Settings, User as UserIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getGeocode, getLatLng } from 'use-places-autocomplete';
 
 const PlacesAutocomplete = dynamic(() => import('./places-autocomplete').then(mod => mod.PlacesAutocomplete), {
   ssr: false,
@@ -75,11 +76,11 @@ export function DashboardPage() {
 
   const handleCardClick = (report: Report) => {
     setSelectedReport(report);
-    setNewReportLocation(null); // Clear new report location when selecting existing
+    setNewReportLocation(null); 
     setMapCenter(report.location);
     setMapZoom(16);
   };
-
+  
   const handleMapClick = (e: google.maps.MapMouseEvent) => {
     if (isReportDialogOpen) {
       if (e.latLng) {
@@ -94,24 +95,31 @@ export function DashboardPage() {
   };
   
   const handleNewReport = () => {
-    setSelectedReport(null); // Deselect any existing report
-    setNewReportLocation(null); // Reset location
+    setSelectedReport(null); 
+    setNewReportLocation(null); 
     setReportDialogOpen(true);
   };
 
   const handleDialogClose = (open: boolean) => {
     if (!open) {
-      setNewReportLocation(null); // Reset location on close
+      setNewReportLocation(null); 
     }
     setReportDialogOpen(open);
   }
 
-  const handlePlaceSelect = (place: google.maps.places.PlaceResult) => {
-    if (place.geometry?.location) {
-        const lat = place.geometry.location.lat();
-        const lng = place.geometry.location.lng();
+  const handlePlaceSelect = async (place: google.maps.places.AutocompletePrediction) => {
+    try {
+        const results = await getGeocode({ address: place.description });
+        const { lat, lng } = await getLatLng(results[0]);
         setMapCenter({ lat, lng });
         setMapZoom(16);
+    } catch (error) {
+        console.error("Error getting geocode: ", error);
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not fetch location details. Please try again."
+        })
     }
   };
 
@@ -207,10 +215,10 @@ export function DashboardPage() {
           </div>
           <div className="flex items-center gap-4">
             <ReportDialog
-                location={newReportLocation}
-                onOpenChange={handleDialogClose}
                 open={isReportDialogOpen}
-                 onLocationChange={setNewReportLocation}
+                onOpenChange={handleDialogClose}
+                location={newReportLocation}
+                onLocationChange={setNewReportLocation}
             >
                 <Button onClick={handleNewReport}>
                   <PlusCircle className="mr-2 h-4 w-4" />
