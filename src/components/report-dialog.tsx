@@ -26,6 +26,7 @@ import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { MapPin, Loader2 } from "lucide-react";
 import { addReport } from "@/lib/report-service";
 import type { ReportSeverity, ReportType } from "@/lib/types";
+import { useUser } from "@/hooks/useUser";
 
 type ReportDialogProps = {
   children: React.ReactNode;
@@ -37,6 +38,7 @@ type ReportDialogProps = {
 
 export function ReportDialog({ children, onOpenChange, open, location, onReportSubmit }: ReportDialogProps) {
   const { toast } = useToast();
+  const { user } = useUser();
   const [lat, setLat] = React.useState('');
   const [lng, setLng] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -69,6 +71,15 @@ export function ReportDialog({ children, onOpenChange, open, location, onReportS
       });
       return;
     }
+    
+    if (!user) {
+        toast({
+            variant: "destructive",
+            title: "Authentication Error",
+            description: "You must be logged in to submit a report.",
+        });
+        return;
+    }
 
     setIsSubmitting(true);
     const formData = new FormData(event.currentTarget);
@@ -78,7 +89,8 @@ export function ReportDialog({ children, onOpenChange, open, location, onReportS
         type: type,
         severity: severity,
         location: location,
-        zone: 'Dharavi-Mumbai' // This should probably be dynamic
+        zone: 'Dharavi-Mumbai', // This should probably be dynamic
+        user: { id: user.id, name: user.name, avatarUrl: user.avatarUrl }
     };
 
     try {
@@ -191,7 +203,7 @@ export function ReportDialog({ children, onOpenChange, open, location, onReportS
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting || !user}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Submit Report
             </Button>

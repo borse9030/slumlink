@@ -1,6 +1,7 @@
 import { collection, getDocs, addDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Report, ReportSeverity, ReportType } from './types';
+import { useUser } from '@/hooks/useUser';
 
 const reportsCollectionRef = collection(db, 'reports');
 
@@ -34,14 +35,13 @@ export const addReport = async (reportData: {
     location: { lat: number; lng: number };
     zone: string; // You might want to determine this dynamically
     imageUrl?: string;
+    user: { id: string; name: string; avatarUrl: string; };
 }) => {
     try {
         await addDoc(reportsCollectionRef, {
             ...reportData,
             status: 'Pending',
             createdAt: serverTimestamp(),
-            // Mock user for now, replace with actual logged-in user
-            user: { id: 'u1', name: 'Ravi Sharma', avatarUrl: 'https://placehold.co/100x100' }
         });
     } catch (error) {
         console.error("Error adding report: ", error);
