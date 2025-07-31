@@ -1,10 +1,9 @@
-
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getFirestore, Firestore } from "firebase/firestore";
 import { getAuth, Auth } from "firebase/auth";
 
-// Your web app's Firebase configuration
+// Your web app's Firebase configuration pulled from environment variables
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -14,28 +13,19 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-// Initialize Firebase
+// Initialize Firebase for client-side
 let app: FirebaseApp;
 let auth: Auth;
 let db: Firestore;
 
-// This function ensures that Firebase is only initialized on the client-side
-function getFirebaseApp() {
-    if (typeof window !== 'undefined') { // Check if running in a browser
-        if (!getApps().length) {
-            app = initializeApp(firebaseConfig);
-        } else {
-            app = getApp();
-        }
-        auth = getAuth(app);
-        db = getFirestore(app);
+if (typeof window !== 'undefined') { // Check if running in a browser
+    if (!getApps().length) {
+        app = initializeApp(firebaseConfig);
+    } else {
+        app = getApp();
     }
-    // On the server, we can return null or mock instances if needed,
-    // but for now, we'll just ensure it doesn't crash the build.
-    // The services will be initialized client-side when this is called from components.
+    auth = getAuth(app);
+    db = getFirestore(app);
 }
-
-getFirebaseApp();
-
 
 export { db, auth, app };
