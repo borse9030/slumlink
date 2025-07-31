@@ -64,7 +64,7 @@ export function ReportDialog({ children, onOpenChange, open, location }: ReportD
             Help improve community infrastructure. Click on the map to set a location.
           </DialogDescription>
         </DialogHeader>
-        {!location && (
+        {!location && open && (
             <Alert>
                 <MapPin className="h-4 w-4" />
                 <AlertTitle>Select a Location</AlertTitle>

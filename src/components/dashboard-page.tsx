@@ -70,7 +70,7 @@ export function DashboardPage() {
 
   const handleCardClick = (report: Report) => {
     setSelectedReport(report);
-    setNewReportLocation(null);
+    setNewReportLocation(null); // Clear new report location when selecting existing
     setMapCenter(report.location);
     setMapZoom(16);
   };
@@ -78,24 +78,26 @@ export function DashboardPage() {
   const handleMapClick = (e: google.maps.MapMouseEvent) => {
     if (isReportDialogOpen) {
       if (e.latLng) {
-        setNewReportLocation({ lat: e.latLng.lat(), lng: e.latLng.lng() });
+        const location = { lat: e.latLng.lat(), lng: e.latLng.lng() };
+        setNewReportLocation(location);
         toast({
           title: "Location Selected",
-          description: "Location for the new report has been set.",
+          description: `Pinned at ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`,
         })
       }
     }
   };
   
   const handleNewReport = () => {
+    setSelectedReport(null); // Deselect any existing report
+    setNewReportLocation(null); // Reset location
     setReportDialogOpen(true);
-    setSelectedReport(null);
   };
 
   const handleDialogClose = (open: boolean) => {
     setReportDialogOpen(open);
     if (!open) {
-      setNewReportLocation(null);
+      setNewReportLocation(null); // Reset location on close
     }
   }
 
@@ -233,8 +235,8 @@ export function DashboardPage() {
             newReportLocation={newReportLocation}
             center={mapCenter}
             zoom={mapZoom}
-            onCenterChanged={(center) => setMapCenter(center)}
-            onZoomChanged={(zoom) => setMapZoom(zoom)}
+            onCenterChanged={setMapCenter}
+            onZoomChanged={setMapZoom}
            />
         </main>
       </SidebarInset>
