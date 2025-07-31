@@ -20,7 +20,7 @@ export type Report = {
     avatarUrl: string;
   };
   imageUrl?: string;
-  createdAt: string; // ISO date string
+  createdAt: string; // ISO date string or Firestore Timestamp
 };
 
 export type UserRole = 'ngo' | 'government';

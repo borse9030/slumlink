@@ -41,12 +41,13 @@ import { ReportCard } from "./report-card";
 import { ReportDialog } from "./report-dialog";
 import { AiInsightsDialog } from "./ai-insights-dialog";
 import type { Report, ReportSeverity, ReportStatus, ReportType } from "@/lib/types";
-import { mockReports } from "@/lib/data";
 import { Filter, LogOut, PlusCircle, Settings, User as UserIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { APIProvider, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { getGeocode, getLatLng } from "use-places-autocomplete";
 import { useUser } from "@/hooks/useUser";
+import { getReports, addReport } from "@/lib/report-service";
+import { Skeleton } from "./ui/skeleton";
 
 const PlacesAutocomplete = dynamic(() => import('./places-autocomplete').then(mod => mod.PlacesAutocomplete), {
   ssr: false,
@@ -57,7 +58,8 @@ const MapView = dynamic(() => import('./map-view').then(mod => mod.MapView), {
 });
 
 function NgoDashboardContent() {
-  const [reports, setReports] = React.useState<Report[]>(mockReports);
+  const [reports, setReports] = React.useState<Report[]>([]);
+  const [isLoadingReports, setIsLoadingReports] = React.useState(true);
   const [selectedReport, setSelectedReport] = React.useState<Report | null>(null);
   const [isReportDialogOpen, setReportDialogOpen] = React.useState(false);
   
@@ -75,6 +77,17 @@ function NgoDashboardContent() {
   
   const placesLib = useMapsLibrary('places');
 
+  const fetchReports = React.useCallback(async () => {
+    setIsLoadingReports(true);
+    const reportsFromDb = await getReports();
+    setReports(reportsFromDb);
+    setIsLoadingReports(false);
+  }, []);
+
+  React.useEffect(() => {
+    fetchReports();
+  }, [fetchReports]);
+
   const filteredReports = reports.filter(report => {
     return (
       (typeFilter === 'all' || report.type === typeFilter) &&
@@ -86,8 +99,10 @@ function NgoDashboardContent() {
   const handleCardClick = (report: Report) => {
     setSelectedReport(report);
     setNewReportLocation(null); 
-    setMapCenter(report.location);
-    setMapZoom(16);
+    if(report.location) {
+      setMapCenter(report.location);
+      setMapZoom(16);
+    }
   };
 
   const handleDoubleRightClick = (lat: number, lng: number) => {
@@ -138,6 +153,10 @@ function NgoDashboardContent() {
   const handleLogout = () => {
     // In a real app, this would also clear auth tokens/session
     router.push('/login');
+  };
+
+  const handleReportSubmit = async () => {
+    await fetchReports();
   };
   
   return (
@@ -200,16 +219,24 @@ function NgoDashboardContent() {
             <SidebarGroup className="flex-1">
               <SidebarGroupLabel>Reports ({filteredReports.length})</SidebarGroupLabel>
               <ScrollArea className="h-[calc(100vh-350px)]">
-                <div className="space-y-2 p-2">
-                  {filteredReports.map((report) => (
-                    <ReportCard
-                      key={report.id}
-                      report={report}
-                      isSelected={selectedReport?.id === report.id}
-                      onClick={() => handleCardClick(report)}
-                    />
-                  ))}
-                </div>
+                 {isLoadingReports ? (
+                   <div className="space-y-2 p-2">
+                     <Skeleton className="h-24 w-full" />
+                     <Skeleton className="h-24 w-full" />
+                     <Skeleton className="h-24 w-full" />
+                   </div>
+                 ) : (
+                    <div className="space-y-2 p-2">
+                      {filteredReports.map((report) => (
+                        <ReportCard
+                          key={report.id}
+                          report={report}
+                          isSelected={selectedReport?.id === report.id}
+                          onClick={() => handleCardClick(report)}
+                        />
+                      ))}
+                    </div>
+                 )}
               </ScrollArea>
             </SidebarGroup>
           </SidebarContent>
@@ -234,6 +261,7 @@ function NgoDashboardContent() {
                   open={isReportDialogOpen}
                   onOpenChange={handleDialogClose}
                   location={newReportLocation}
+                  onReportSubmit={handleReportSubmit}
               >
                   <Button onClick={handleNewReportClick}>
                     <PlusCircle className="mr-2 h-4 w-4" />

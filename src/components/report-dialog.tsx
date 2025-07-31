@@ -23,19 +23,26 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import React, { useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import { MapPin } from "lucide-react";
+import { MapPin, Loader2 } from "lucide-react";
+import { addReport } from "@/lib/report-service";
+import type { ReportSeverity, ReportType } from "@/lib/types";
 
 type ReportDialogProps = {
   children: React.ReactNode;
   onOpenChange: (open: boolean) => void;
   open: boolean;
   location: { lat: number; lng: number } | null;
+  onReportSubmit: () => void;
 };
 
-export function ReportDialog({ children, onOpenChange, open, location }: ReportDialogProps) {
+export function ReportDialog({ children, onOpenChange, open, location, onReportSubmit }: ReportDialogProps) {
   const { toast } = useToast();
   const [lat, setLat] = React.useState('');
   const [lng, setLng] = React.useState('');
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [type, setType] = React.useState<ReportType | ''>('');
+  const [severity, setSeverity] = React.useState<ReportSeverity | ''>('');
+
 
   useEffect(() => {
     if (location) {
@@ -44,23 +51,53 @@ export function ReportDialog({ children, onOpenChange, open, location }: ReportD
     }
   }, [location]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!location) {
         toast({
             variant: "destructive",
             title: "Location Missing",
-            description: "Please click a location on the map before submitting.",
+            description: "Please select a location on the map before submitting.",
         });
         return;
     }
-    // Here you would handle form submission, e.g., send data to an API
-    console.log("Form submitted with location:", location);
-    toast({
-      title: "Report Submitted",
-      description: "Thank you for your contribution.",
-    });
-    onOpenChange(false);
+    if (!type || !severity) {
+      toast({
+          variant: "destructive",
+          title: "Missing Fields",
+          description: "Please select a category and severity.",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    const formData = new FormData(event.currentTarget);
+    const reportData = {
+        title: formData.get('title') as string,
+        description: formData.get('description') as string,
+        type: type,
+        severity: severity,
+        location: location,
+        zone: 'Dharavi-Mumbai' // This should probably be dynamic
+    };
+
+    try {
+        await addReport(reportData);
+        toast({
+          title: "Report Submitted",
+          description: "Thank you for your contribution.",
+        });
+        onReportSubmit(); // Callback to refresh the reports list
+        onOpenChange(false);
+    } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Submission Failed",
+            description: "Could not submit the report. Please try again.",
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   return (
@@ -70,7 +107,7 @@ export function ReportDialog({ children, onOpenChange, open, location }: ReportD
         <DialogHeader>
           <DialogTitle>Submit New Report</DialogTitle>
           <DialogDescription>
-            Help improve community infrastructure. Click on the map to pin a location.
+            Help improve community infrastructure. Double-right-click on the map to pin a location.
           </DialogDescription>
         </DialogHeader>
         {!location && open && (
@@ -78,7 +115,7 @@ export function ReportDialog({ children, onOpenChange, open, location }: ReportD
                 <MapPin className="h-4 w-4" />
                 <AlertTitle>Select a Location</AlertTitle>
                 <AlertDescription>
-                    Please click on the map to specify the exact location of the issue.
+                    Please double-right-click on the map to specify the exact location of the issue.
                 </AlertDescription>
             </Alert>
         )}
@@ -88,13 +125,13 @@ export function ReportDialog({ children, onOpenChange, open, location }: ReportD
               <Label htmlFor="title" className="text-right">
                 Title
               </Label>
-              <Input id="title" placeholder="e.g., Broken streetlight" className="col-span-3" required />
+              <Input id="title" name="title" placeholder="e.g., Broken streetlight" className="col-span-3" required />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="type" className="text-right">
                 Category
               </Label>
-              <Select required>
+              <Select name="type" required value={type} onValueChange={(value) => setType(value as ReportType)}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
@@ -111,7 +148,7 @@ export function ReportDialog({ children, onOpenChange, open, location }: ReportD
               <Label htmlFor="severity" className="text-right">
                 Severity
               </Label>
-              <Select required>
+              <Select name="severity" required value={severity} onValueChange={(value) => setSeverity(value as ReportSeverity)}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select a severity level" />
                 </SelectTrigger>
@@ -128,6 +165,7 @@ export function ReportDialog({ children, onOpenChange, open, location }: ReportD
               </Label>
               <Textarea
                 id="description"
+                name="description"
                 placeholder="Describe the issue in detail..."
                 className="col-span-3"
                 required
@@ -137,7 +175,7 @@ export function ReportDialog({ children, onOpenChange, open, location }: ReportD
               <Label htmlFor="photo" className="text-right">
                 Photo
               </Label>
-              <Input id="photo" type="file" className="col-span-3" />
+              <Input id="photo" name="photo" type="file" className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="location" className="text-right">
@@ -153,7 +191,10 @@ export function ReportDialog({ children, onOpenChange, open, location }: ReportD
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit">Submit Report</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Submit Report
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

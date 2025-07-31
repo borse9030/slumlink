@@ -40,12 +40,13 @@ import { Separator } from "@/components/ui/separator";
 import { ReportCard } from "./report-card";
 import { AiInsightsDialog } from "./ai-insights-dialog";
 import type { Report, ReportStatus } from "@/lib/types";
-import { mockReports } from "@/lib/data";
 import { Download, Filter, LogOut, Settings, User as UserIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { APIProvider, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { getGeocode, getLatLng } from "use-places-autocomplete";
 import { useUser } from "@/hooks/useUser";
+import { getReports } from "@/lib/report-service";
+import { Skeleton } from "./ui/skeleton";
 
 const PlacesAutocomplete = dynamic(() => import('./places-autocomplete').then(mod => mod.PlacesAutocomplete), {
   ssr: false,
@@ -57,7 +58,8 @@ const MapView = dynamic(() => import('./map-view').then(mod => mod.MapView), {
 
 
 function GovernmentDashboardContent() {
-  const [reports, setReports] = React.useState<Report[]>(mockReports);
+  const [reports, setReports] = React.useState<Report[]>([]);
+  const [isLoadingReports, setIsLoadingReports] = React.useState(true);
   const [selectedReport, setSelectedReport] = React.useState<Report | null>(null);
   
   const { toast } = useToast();
@@ -73,6 +75,16 @@ function GovernmentDashboardContent() {
   
   const placesLib = useMapsLibrary('places');
 
+  React.useEffect(() => {
+    const fetchReports = async () => {
+      setIsLoadingReports(true);
+      const reportsFromDb = await getReports();
+      setReports(reportsFromDb);
+      setIsLoadingReports(false);
+    };
+    fetchReports();
+  }, []);
+
   const filteredReports = reports.filter(report => {
     return (
       (zoneFilter === 'all' || report.zone === zoneFilter) &&
@@ -81,14 +93,16 @@ function GovernmentDashboardContent() {
     );
   });
   
-  const allZones = [...new Set(mockReports.map(r => r.zone))];
-  const allNgos = [...new Set(mockReports.map(r => r.user.name.split(' ')[0]))]; // Mock NGO names
+  const allZones = [...new Set(reports.map(r => r.zone))];
+  const allNgos = [...new Set(reports.map(r => r.user.name.split(' ')[0]))]; // Mock NGO names
 
 
   const handleCardClick = (report: Report) => {
     setSelectedReport(report);
-    setMapCenter(report.location);
-    setMapZoom(16);
+    if(report.location) {
+        setMapCenter(report.location);
+        setMapZoom(16);
+    }
   };
   
   const handlePlaceSelect = async (place: google.maps.places.AutocompletePrediction | null) => {
@@ -167,16 +181,24 @@ function GovernmentDashboardContent() {
             <SidebarGroup className="flex-1">
               <SidebarGroupLabel>All Reports ({filteredReports.length})</SidebarGroupLabel>
               <ScrollArea className="h-[calc(100vh-350px)]">
-                <div className="space-y-2 p-2">
-                  {filteredReports.map((report) => (
-                    <ReportCard
-                      key={report.id}
-                      report={report}
-                      isSelected={selectedReport?.id === report.id}
-                      onClick={() => handleCardClick(report)}
-                    />
-                  ))}
-                </div>
+                {isLoadingReports ? (
+                   <div className="space-y-2 p-2">
+                     <Skeleton className="h-24 w-full" />
+                     <Skeleton className="h-24 w-full" />
+                     <Skeleton className="h-24 w-full" />
+                   </div>
+                ) : (
+                  <div className="space-y-2 p-2">
+                    {filteredReports.map((report) => (
+                      <ReportCard
+                        key={report.id}
+                        report={report}
+                        isSelected={selectedReport?.id === report.id}
+                        onClick={() => handleCardClick(report)}
+                      />
+                    ))}
+                  </div>
+                )}
               </ScrollArea>
             </SidebarGroup>
           </SidebarContent>
