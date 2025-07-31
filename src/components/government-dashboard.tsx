@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -88,15 +89,16 @@ function GovernmentDashboardContent() {
   }, []);
 
   const filteredReports = reports.filter(report => {
+    const ngoNameMatch = ngoFilter === 'all' || (report.user && report.user.name && report.user.name.includes(ngoFilter));
     return (
       (zoneFilter === 'all' || report.zone === zoneFilter) &&
       (statusFilter === 'all' || report.status === statusFilter) &&
-      (ngoFilter === 'all' || report.user.name.includes(ngoFilter)) // Simple mock filter
+      ngoNameMatch
     );
   });
   
   const allZones = [...new Set(reports.map(r => r.zone))];
-  const allNgos = [...new Set(reports.map(r => r.user.name.split(' ')[0]))]; // Mock NGO names
+  const allNgos = [...new Set(reports.filter(r => r.user && r.user.name).map(r => r.user.name.split(' ')[0]))]; // Mock NGO names
 
 
   const handleCardClick = (report: Report) => {
