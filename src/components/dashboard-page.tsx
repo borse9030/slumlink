@@ -37,7 +37,6 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { ReportCard } from "./report-card";
-import { MapView } from "./map-view";
 import { ReportDialog } from "./report-dialog";
 import { AiInsightsDialog } from "./ai-insights-dialog";
 import type { Report, ReportSeverity, ReportStatus, ReportType } from "@/lib/types";
@@ -45,16 +44,20 @@ import { mockReports } from "@/lib/data";
 import { Filter, LogOut, PlusCircle, Settings, User as UserIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getGeocode, getLatLng } from 'use-places-autocomplete';
-import { APIProvider } from "@vis.gl/react-google-maps";
+import { APIProvider, useMapsLibrary } from "@vis.gl/react-google-maps";
 
 const PlacesAutocomplete = dynamic(() => import('./places-autocomplete').then(mod => mod.PlacesAutocomplete), {
   ssr: false,
 });
 
+const MapView = dynamic(() => import('./map-view').then(mod => mod.MapView), {
+  ssr: false,
+});
+
+
 const MAP_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-
-export function DashboardPage() {
+function DashboardContent() {
   const [reports, setReports] = React.useState<Report[]>(mockReports);
   const [selectedReport, setSelectedReport] = React.useState<Report | null>(null);
   const [isReportDialogOpen, setReportDialogOpen] = React.useState(false);
@@ -68,6 +71,8 @@ export function DashboardPage() {
   const [typeFilter, setTypeFilter] = React.useState<ReportType | "all">("all");
   const [severityFilter, setSeverityFilter] = React.useState<ReportSeverity | "all">("all");
   const [statusFilter, setStatusFilter] = React.useState<ReportStatus | "all">("all");
+  
+  const placesLib = useMapsLibrary('places');
 
   const filteredReports = reports.filter(report => {
     return (
@@ -85,32 +90,40 @@ export function DashboardPage() {
   };
   
   const handleMapClick = (e: google.maps.MapMouseEvent) => {
-    if (isReportDialogOpen) {
-      if (e.latLng) {
-        const location = { lat: e.latLng.lat(), lng: e.latLng.lng() };
-        setNewReportLocation(location);
-        toast({
-          title: "Location Selected",
-          description: `Pinned at ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`,
-        })
-      }
+    if (e.latLng) {
+      const location = { lat: e.latLng.lat(), lng: e.latLng.lng() };
+      setNewReportLocation(location);
+      toast({
+        title: "Location Pinned",
+        description: "You can now open the 'New Report' form.",
+      })
     }
   };
   
   const handleNewReport = () => {
+    if (!newReportLocation) {
+        toast({
+            variant: "destructive",
+            title: "Location Missing",
+            description: "Please click on the map to pin a location for your report first.",
+        });
+        return;
+    }
     setSelectedReport(null); 
-    setNewReportLocation(null); 
     setReportDialogOpen(true);
   };
 
   const handleDialogClose = (open: boolean) => {
     if (!open) {
-      setNewReportLocation(null); 
+      // Keep newReportLocation pinned until next map click or successful submission
     }
     setReportDialogOpen(open);
   }
 
-  const handlePlaceSelect = async (address: string) => {
+  const handlePlaceSelect = async (place: google.maps.places.AutocompletePrediction | null) => {
+    if (!place) return;
+    
+    const address = place.description;
     try {
         const results = await getGeocode({ address });
         const { lat, lng } = await getLatLng(results[0]);
@@ -125,21 +138,8 @@ export function DashboardPage() {
         })
     }
   };
-
-  if (!MAP_API_KEY) {
-    return (
-      <div className="flex items-center justify-center h-full bg-muted">
-        <div className="text-center p-4 rounded-lg bg-card border">
-            <h2 className="text-xl font-bold">Map Unavailable</h2>
-            <p className="text-muted-foreground">Google Maps API key is missing.</p>
-        </div>
-      </div>
-    );
-  }
-
-
+  
   return (
-    <APIProvider apiKey={MAP_API_KEY}>
       <SidebarProvider>
         <Sidebar collapsible="icon">
           <SidebarHeader>
@@ -226,7 +226,7 @@ export function DashboardPage() {
               </h2>
             </div>
             <div className="flex-1 max-w-sm mx-auto">
-              <PlacesAutocomplete onPlaceSelect={handlePlaceSelect} />
+               {placesLib && <PlacesAutocomplete onPlaceSelect={handlePlaceSelect} />}
             </div>
             <div className="flex items-center gap-4">
               <ReportDialog
@@ -273,6 +273,27 @@ export function DashboardPage() {
           </main>
         </SidebarInset>
       </SidebarProvider>
-    </APIProvider>
   );
+}
+
+
+export function DashboardPage() {
+    const MAP_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+    if (!MAP_API_KEY) {
+        return (
+          <div className="flex items-center justify-center h-full bg-muted">
+            <div className="text-center p-4 rounded-lg bg-card border">
+                <h2 className="text-xl font-bold">Map Unavailable</h2>
+                <p className="text-muted-foreground">Google Maps API key is missing.</p>
+            </div>
+          </div>
+        );
+      }
+
+    return (
+        <APIProvider apiKey={MAP_API_KEY}>
+            <DashboardContent />
+        </APIProvider>
+    )
 }

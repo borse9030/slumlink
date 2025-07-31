@@ -1,19 +1,12 @@
 "use client";
 
-import usePlacesAutocomplete, {
-  getGeocode,
-  getLatLng,
-} from "use-places-autocomplete";
-import { Input } from "./ui/input";
-import { Card } from "./ui/card";
-import { Search } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useState, useRef } from 'react';
+import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete';
+import { Input } from './ui/input';
+import { Card } from './ui/card';
+import { Search } from 'lucide-react';
 
-type PlacesAutocompleteProps = {
-  onPlaceSelect: (address: string) => void;
-};
-
-export function PlacesAutocomplete({ onPlaceSelect }: PlacesAutocompleteProps) {
+export function PlacesAutocomplete({ onPlaceSelect }: { onPlaceSelect: (place: google.maps.places.AutocompletePrediction | null) => void }) {
   const {
     ready,
     value,
@@ -21,9 +14,7 @@ export function PlacesAutocomplete({ onPlaceSelect }: PlacesAutocompleteProps) {
     setValue,
     clearSuggestions,
   } = usePlacesAutocomplete({
-    requestOptions: {
-      /* Define search scope here */
-    },
+    requestOptions: { /* Define search scope here */ },
     debounce: 300,
   });
   const ref = useRef<HTMLDivElement>(null);
@@ -32,15 +23,11 @@ export function PlacesAutocomplete({ onPlaceSelect }: PlacesAutocompleteProps) {
     setValue(e.target.value);
   };
 
-  const handleSelect =
-    ({ description }: { description: string }) =>
-    () => {
-      // When user selects a place, we can replace the keyword without request data from API
-      // by setting the second parameter to "false"
-      setValue(description, false);
-      clearSuggestions();
-      onPlaceSelect(description);
-    };
+  const handleSelect = (place: google.maps.places.AutocompletePrediction) => () => {
+    setValue(place.description, false);
+    clearSuggestions();
+    onPlaceSelect(place);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -55,8 +42,8 @@ export function PlacesAutocomplete({ onPlaceSelect }: PlacesAutocompleteProps) {
   }, [clearSuggestions]);
 
 
-  const renderSuggestions = () =>
-    data.map((suggestion) => {
+  const renderSuggestions = () => {
+    return data.map((suggestion) => {
       const {
         place_id,
         structured_formatting: { main_text, secondary_text },
@@ -64,14 +51,15 @@ export function PlacesAutocomplete({ onPlaceSelect }: PlacesAutocompleteProps) {
 
       return (
         <div
-            key={place_id}
-            onClick={handleSelect(suggestion)}
-            className="p-2 hover:bg-muted cursor-pointer text-sm"
+          key={place_id}
+          onClick={handleSelect(suggestion)}
+          className="p-2 hover:bg-muted cursor-pointer text-sm"
         >
           <strong>{main_text}</strong> <small>{secondary_text}</small>
         </div>
       );
     });
+  };
 
   return (
     <div className="relative w-full" ref={ref}>
@@ -83,6 +71,7 @@ export function PlacesAutocomplete({ onPlaceSelect }: PlacesAutocompleteProps) {
           disabled={!ready}
           placeholder="Search for a location..."
           className="w-full pl-9"
+          type="text"
         />
       </div>
       {status === "OK" && (
