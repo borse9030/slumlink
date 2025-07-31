@@ -162,7 +162,7 @@ export function MapView({
 
       {newReportLocation && (
         <AdvancedMarker position={newReportLocation}>
-          <Pin backgroundColor={'hsl(var(--primary))'} borderColor={'hsl(var(--primary-foreground))'} glyphColor={'hsl(var(--primary-foreground))'} />
+          <Pin background={'hsl(var(--primary))'} borderColor={'hsl(var(--primary-foreground))'} glyphColor={'hsl(var(--primary-foreground))'} />
         </AdvancedMarker>
       )}
     </Map>
