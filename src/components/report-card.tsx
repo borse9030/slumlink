@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
+import { useEffect, useState } from "react";
 
 type ReportCardProps = {
   report: Report;
@@ -13,6 +14,14 @@ type ReportCardProps = {
 };
 
 export function ReportCard({ report, isSelected, onClick }: ReportCardProps) {
+  const [timeAgo, setTimeAgo] = useState("");
+
+  useEffect(() => {
+    // This code runs only on the client, after hydration
+    setTimeAgo(formatDistanceToNow(new Date(report.createdAt), { addSuffix: true }));
+  }, [report.createdAt]);
+
+
   const getSeverityColor = (severity: Report['severity']) => {
     switch (severity) {
       case "High":
@@ -45,7 +54,7 @@ export function ReportCard({ report, isSelected, onClick }: ReportCardProps) {
             <Badge variant="outline">{report.status}</Badge>
           </div>
           <p className="text-xs text-muted-foreground">
-            {formatDistanceToNow(new Date(report.createdAt), { addSuffix: true })}
+            {timeAgo}
           </p>
         </div>
       </CardContent>
