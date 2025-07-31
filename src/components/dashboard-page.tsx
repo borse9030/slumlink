@@ -45,10 +45,7 @@ import { Filter, LogOut, PlusCircle, Settings, User as UserIcon } from "lucide-r
 import { useToast } from "@/hooks/use-toast";
 import { getGeocode, getLatLng } from 'use-places-autocomplete';
 import { APIProvider, useMapsLibrary } from "@vis.gl/react-google-maps";
-
-const PlacesAutocomplete = dynamic(() => import('./places-autocomplete').then(mod => mod.PlacesAutocomplete), {
-  ssr: false,
-});
+import { PlacesAutocomplete } from "./places-autocomplete";
 
 const MapView = dynamic(() => import('./map-view').then(mod => mod.MapView), {
   ssr: false,
@@ -90,32 +87,29 @@ function DashboardContent() {
   };
   
   const handleMapClick = (e: google.maps.MapMouseEvent) => {
-    if (e.latLng) {
+    if (isReportDialogOpen && e.latLng) {
       const location = { lat: e.latLng.lat(), lng: e.latLng.lng() };
       setNewReportLocation(location);
       toast({
         title: "Location Pinned",
-        description: "You can now open the 'New Report' form.",
+        description: "The location for your new report has been set.",
       })
     }
   };
   
-  const handleNewReport = () => {
-    if (!newReportLocation) {
-        toast({
-            variant: "destructive",
-            title: "Location Missing",
-            description: "Please click on the map to pin a location for your report first.",
-        });
-        return;
-    }
-    setSelectedReport(null); 
+  const handleNewReportClick = () => {
+    setSelectedReport(null);
+    setNewReportLocation(null); // Clear previous pin
     setReportDialogOpen(true);
+    toast({
+        title: "Pin a Location",
+        description: "Click on the map to set a location for your report.",
+      });
   };
 
   const handleDialogClose = (open: boolean) => {
     if (!open) {
-      // Keep newReportLocation pinned until next map click or successful submission
+      setNewReportLocation(null); // Clear the pin when dialog closes
     }
     setReportDialogOpen(open);
   }
@@ -226,7 +220,7 @@ function DashboardContent() {
               </h2>
             </div>
             <div className="flex-1 max-w-sm mx-auto">
-               {placesLib && <PlacesAutocomplete onPlaceSelect={handlePlaceSelect} />}
+              {placesLib && <PlacesAutocomplete onPlaceSelect={handlePlaceSelect} />}
             </div>
             <div className="flex items-center gap-4">
               <ReportDialog
@@ -234,7 +228,7 @@ function DashboardContent() {
                   onOpenChange={handleDialogClose}
                   location={newReportLocation}
               >
-                  <Button onClick={handleNewReport}>
+                  <Button onClick={handleNewReportClick}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     New Report
                   </Button>
@@ -292,7 +286,7 @@ export function DashboardPage() {
       }
 
     return (
-        <APIProvider apiKey={MAP_API_KEY}>
+        <APIProvider apiKey={MAP_API_KEY} libraries={['places']}>
             <DashboardContent />
         </APIProvider>
     )
