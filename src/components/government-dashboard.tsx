@@ -86,8 +86,10 @@ function GovernmentDashboardContent() {
       setReports(reportsFromDb);
       setIsLoadingReports(false);
     };
-    fetchReports();
-  }, []);
+    if (user) {
+        fetchReports();
+    }
+  }, [user]);
 
   const filteredReports = reports.filter(report => {
     if (!user) return false;
@@ -289,3 +291,5 @@ export function GovernmentDashboard() {
         </APIProvider>
     )
 }
+
+    
