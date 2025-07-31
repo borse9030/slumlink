@@ -6,6 +6,7 @@ import {
   AdvancedMarker,
   InfoWindow,
   useAdvancedMarkerRef,
+  Pin,
 } from "@vis.gl/react-google-maps";
 import type { Report } from "@/lib/types";
 import { useState } from "react";
@@ -17,11 +18,12 @@ import { cn } from "@/lib/utils";
 
 const MAP_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-const ReportMarker = ({ report }: { report: Report }) => {
+const ReportMarker = ({ report, onClick }: { report: Report; onClick: () => void }) => {
   const [markerRef, marker] = useAdvancedMarkerRef();
   const [infoWindowShown, setInfoWindowShown] = useState(false);
 
   const handleMarkerClick = () => {
+    onClick();
     setInfoWindowShown((prev) => !prev);
   };
   
@@ -86,9 +88,11 @@ type MapViewProps = {
   reports: Report[];
   selectedReport: Report | null;
   onMarkerClick: (report: Report) => void;
+  onMapClick: (e: google.maps.MapMouseEvent) => void;
+  newReportLocation: { lat: number; lng: number } | null;
 };
 
-export function MapView({ reports, selectedReport, onMarkerClick }: MapViewProps) {
+export function MapView({ reports, selectedReport, onMarkerClick, onMapClick, newReportLocation }: MapViewProps) {
   if (!MAP_API_KEY) {
     return (
       <div className="flex items-center justify-center h-full bg-muted">
@@ -110,11 +114,18 @@ export function MapView({ reports, selectedReport, onMarkerClick }: MapViewProps
         mapId="slumlink_map"
         className="w-full h-full"
         gestureHandling={'greedy'}
-        disableDefaultUI={true}
+        disableDefaultUI={false}
+        onClick={onMapClick}
       >
         {reports.map((report) => (
-          <ReportMarker key={report.id} report={report}/>
+          <ReportMarker key={report.id} report={report} onClick={() => onMarkerClick(report)} />
         ))}
+
+        {newReportLocation && (
+          <AdvancedMarker position={newReportLocation}>
+            <Pin backgroundColor={'hsl(var(--primary))'} borderColor={'hsl(var(--primary-foreground))'} glyphColor={'hsl(var(--primary-foreground))'} />
+          </AdvancedMarker>
+        )}
       </Map>
     </APIProvider>
   );

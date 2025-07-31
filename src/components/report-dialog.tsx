@@ -22,19 +22,31 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import React from "react";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { MapPin } from "lucide-react";
 
 type ReportDialogProps = {
   children: React.ReactNode;
   onOpenChange: (open: boolean) => void;
+  open: boolean;
+  location: { lat: number; lng: number } | null;
 };
 
-export function ReportDialog({ children, onOpenChange }: ReportDialogProps) {
+export function ReportDialog({ children, onOpenChange, open, location }: ReportDialogProps) {
   const { toast } = useToast();
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!location) {
+        toast({
+            variant: "destructive",
+            title: "Location Missing",
+            description: "Please select a location on the map before submitting.",
+        });
+        return;
+    }
     // Here you would handle form submission, e.g., send data to an API
-    console.log("Form submitted");
+    console.log("Form submitted with location:", location);
     toast({
       title: "Report Submitted",
       description: "Thank you for your contribution.",
@@ -43,15 +55,24 @@ export function ReportDialog({ children, onOpenChange }: ReportDialogProps) {
   };
 
   return (
-    <Dialog onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle>Submit New Report</DialogTitle>
           <DialogDescription>
-            Help improve community infrastructure. Please provide as much detail as possible.
+            Help improve community infrastructure. Click on the map to set a location.
           </DialogDescription>
         </DialogHeader>
+        {!location && (
+            <Alert>
+                <MapPin className="h-4 w-4" />
+                <AlertTitle>Select a Location</AlertTitle>
+                <AlertDescription>
+                    Please click on the map to specify the exact location of the issue.
+                </AlertDescription>
+            </Alert>
+        )}
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
@@ -113,7 +134,13 @@ export function ReportDialog({ children, onOpenChange }: ReportDialogProps) {
                 <Label htmlFor="location" className="text-right">
                     Location
                 </Label>
-                <Input id="location" value="Auto-filled from map" className="col-span-3" disabled />
+                <Input 
+                  id="location" 
+                  value={location ? `${location.lat.toFixed(5)}, ${location.lng.toFixed(5)}` : "Select on map"} 
+                  className="col-span-3" 
+                  readOnly
+                  required
+                />
             </div>
           </div>
           <DialogFooter>

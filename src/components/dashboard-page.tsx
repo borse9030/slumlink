@@ -42,12 +42,16 @@ import { AiInsightsDialog } from "./ai-insights-dialog";
 import type { Report, ReportSeverity, ReportStatus, ReportType } from "@/lib/types";
 import { mockReports } from "@/lib/data";
 import { Filter, LogOut, PlusCircle, Settings, User as UserIcon } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export function DashboardPage() {
   const [reports, setReports] = React.useState<Report[]>(mockReports);
   const [selectedReport, setSelectedReport] = React.useState<Report | null>(null);
   const [isReportDialogOpen, setReportDialogOpen] = React.useState(false);
-  const [isAiDialogOpen, setAiDialogOpen] = React.useState(false);
+  
+  const [newReportLocation, setNewReportLocation] = React.useState<{ lat: number; lng: number } | null>(null);
+  const { toast } = useToast();
+
 
   const [typeFilter, setTypeFilter] = React.useState<ReportType | "all">("all");
   const [severityFilter, setSeverityFilter] = React.useState<ReportSeverity | "all">("all");
@@ -63,7 +67,33 @@ export function DashboardPage() {
 
   const handleCardClick = (report: Report) => {
     setSelectedReport(report);
+    setNewReportLocation(null);
   };
+
+  const handleMapClick = (e: google.maps.MapMouseEvent) => {
+    if (isReportDialogOpen) {
+      if (e.latLng) {
+        setNewReportLocation({ lat: e.latLng.lat(), lng: e.latLng.lng() });
+        toast({
+          title: "Location Selected",
+          description: "Location for the new report has been set.",
+        })
+      }
+    }
+  };
+  
+  const handleNewReport = () => {
+    setReportDialogOpen(true);
+    setSelectedReport(null);
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setReportDialogOpen(open);
+    if (!open) {
+      setNewReportLocation(null);
+    }
+  }
+
 
   return (
     <SidebarProvider>
@@ -150,8 +180,12 @@ export function DashboardPage() {
             Infrastructure Dashboard
           </h2>
           <div className="flex items-center gap-4">
-            <ReportDialog onOpenChange={setReportDialogOpen}>
-                <Button>
+            <ReportDialog
+                location={newReportLocation}
+                onOpenChange={handleDialogClose}
+                open={isReportDialogOpen}
+            >
+                <Button onClick={handleNewReport}>
                   <PlusCircle className="mr-2 h-4 w-4" />
                   New Report
                 </Button>
@@ -176,7 +210,13 @@ export function DashboardPage() {
         </header>
 
         <main className="flex-1 relative">
-          <MapView reports={filteredReports} selectedReport={selectedReport} onMarkerClick={handleCardClick} />
+          <MapView 
+            reports={filteredReports} 
+            selectedReport={selectedReport} 
+            onMarkerClick={handleCardClick}
+            onMapClick={handleMapClick}
+            newReportLocation={newReportLocation}
+           />
         </main>
       </SidebarInset>
     </SidebarProvider>
